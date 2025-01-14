@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD007 MD010 MD013 MD033 -->
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
 
 # Frontend system design
 
@@ -50,25 +50,25 @@ Reflow is a sub-process of the process how HTML, CSS, and JavaScript are combine
 
 #### Process
 
-1. HTML is converted into a DOM tree; CSS is converted into a CSSOM tree
-2. The DOM and CSSOM are combined into a render tree
-3. Reflow
-4. Repaint
+1.	HTML is converted into a DOM tree; CSS is converted into a CSSOM tree
+2.	The DOM and CSSOM are combined into a render tree
+3.	Reflow
+4.	Repaint
 
 #### Reflow
 
 Default pipeline (unoptimized):
 
-1. JavaScript (DOM manipulations)
-2. Style (CSS changes)
-3. Layout (recalculating the layout)
-4. Paint (displaying/updating the new layout on the page)
-5. Composite
+1.	JavaScript (DOM manipulations)
+2.	Style (CSS changes)
+3.	Layout (recalculating the layout)
+4.	Paint (displaying/updating the new layout on the page)
+5.	Composite
 
 Optimized pipeline:
 
-1. Paint
-2. Composite
+1.	Paint
+2.	Composite
 
 We want to minimize the number of DOM manipuations (via JavaScript) that cause the first three steps in the reflow process, and by utilizing CSS and DOM manipulations that create new stacking contexts, we're able to optimize the reflow steps.
 
@@ -77,6 +77,7 @@ We want to minimize the number of DOM manipuations (via JavaScript) that cause t
 This example triggers all the steps.
 
 This causes the entire page layout to recalculate because margin affects page layout, so every element's position needs to be recalculated.
+
 ```css
 @keyframes moving-down-slow {
     from {
@@ -93,6 +94,7 @@ This causes the entire page layout to recalculate because margin affects page la
 This example does not trigger the "style" or "layout" steps.
 
 Since transform moves the element out of the normal flow and into a new stacking context, the normal flow is not required to be recalculated when the element being transformed is... transformed.
+
 ```css
 @keyframes moving-down-fast {
     from {
@@ -108,45 +110,46 @@ Since transform moves the element out of the normal flow and into a new stacking
 
 4 Layers (innermost to outtermost):
 
-1. content-box
-2. padding-box
-3. border-box
-4. margin-box
+1.	content-box
+2.	padding-box
+3.	border-box
+4.	margin-box
 
 The box model supports two main properties:
 
-1. Size
-2. Type
+1.	Size
+2.	Type
 
 #### Size
 
 Size can be one of two values:
 
-**Intrinsic**: the box content determines the spaces it occupies
-**Restricted**: the box's size is governed by a set of rules:
-    - CSS (width and height)
-    - Constraint from its parent context or other boxes:
-        - flex or grid layout systems
-        - % of parent size
-        - aspect-ratio if an image
-        - Other siblings
+**Intrinsic**: the box content determines the spaces it occupies **Restricted**: the box's size is governed by a set of rules:
+
+```
+- CSS (width and height)
+- Constraint from its parent context or other boxes:
+    - flex or grid layout systems
+    - % of parent size
+    - aspect-ratio if an image
+    - Other siblings
+```
 
 #### Type
 
 Type can be one of three values:
 
-**Block** level: including, but not restricted by `display: block`
-**Inline** level: `display: inline`
-**Anonymous** box
+**Block** level: including, but not restricted by `display: block` **Inline** level: `display: inline` **Anonymous** box
 
 ##### Box type: block
 
-- Takes 100% of parent context's width
-- Height is equivalent to its content (intrinsic)
-- Rendered from top to bottom
-- Governed by **Block Context Formatting** (BCF)
+-	Takes 100% of parent context's width
+-	Height is equivalent to its content (intrinsic)
+-	Rendered from top to bottom
+-	Governed by **Block Context Formatting** (BCF)
 
 ###### Calculating the width of a block element
+
 Depending on the `box-sizing` property value, the width calculation is different. When `box-sizing: content-box`, each layer of the box model needs to be calculated to get the accurate width of the element; however, `box-sizing: border-box` wraps the border, padding, and content layer into one layer.
 
 `box-sizing: content-box`: `width = margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right`
@@ -157,21 +160,21 @@ Depending on the `box-sizing` property value, the width calculation is different
 
 `address, article, aside, blockquote, canvas, div, figcaption, figure, footer, form, h1-h6, header, hr, li, main, nav, noscript, ol, p, pre, section, table, ul, video`
 
-##### Box type: anonymous 
+##### Box type: anonymous
 
 The only example I know of are empty lines rendered in the DOM (carriage returns?)
 
 ##### Box type: inline
 
-- Rendered like a string, from left to right and top to bottom
-- Governed by **Inline Formatting Context** (IFC)
-- Generate inline-level boxes
+-	Rendered like a string, from left to right and top to bottom
+-	Governed by **Inline Formatting Context** (IFC)
+-	Generate inline-level boxes
 
 ###### Calculating the width of an inline element
 
-- Inline elements do not respond to `width` and `height` properties (literally, it does not affect their size)
-- Inline elements do not react to vertical margins
-- Inline elements' padding does not alter their height
+-	Inline elements do not respond to `width` and `height` properties (literally, it does not affect their size)
+-	Inline elements do not react to vertical margins
+-	Inline elements' padding does not alter their height
 
 `width = margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right`
 
@@ -185,9 +188,9 @@ Pleaes look at pages 18-27 in the slides linked [above](#frontend-system-design)
 
 Key ideas:
 
-- **Isolation**: elements within a context are shielded from the rules of external contexts
-- **Scalability**: introducing a new ruleset for elements is as simple as creating new **Contexts** (flex-box, grid, etc.)
-- **Predictability**: with a strict rule set, the placement of elements is predictable
+-	**Isolation**: elements within a context are shielded from the rules of external contexts
+-	**Scalability**: introducing a new ruleset for elements is as simple as creating new **Contexts** (flex-box, grid, etc.)
+-	**Predictability**: with a strict rule set, the placement of elements is predictable
 
 Please look at pages 29-39 in the slides linked [above](#frontend-system-design).
 
@@ -197,11 +200,11 @@ Without CSS, all page layouts would operate on the X and Y axis, meaning everyth
 
 Stacking contexts are an incredible browser feature:
 
-- **Layering**: we need a way to represent layers in our layouts
-- **Performance optimization**:
-    - Elements removed from the normal flow are placed into a new stacking context
-    - Modifications to every element within a separate stacking context do not impact any other elements within the normal flow
-    - All CSS transformations are GPU accelerated, meaning the browser doesn't need to recalculate the DOM tree when such operations are performed. This minimizes the reflow cycle, and number of reflows as we update the DOM
+-	**Layering**: we need a way to represent layers in our layouts
+-	**Performance optimization**:
+	-	Elements removed from the normal flow are placed into a new stacking context
+	-	Modifications to every element within a separate stacking context do not impact any other elements within the normal flow
+	-	All CSS transformations are GPU accelerated, meaning the browser doesn't need to recalculate the DOM tree when such operations are performed. This minimizes the reflow cycle, and number of reflows as we update the DOM
 
 ### Browser Positioning System
 
@@ -217,32 +220,31 @@ Position determines a variant of an element's positioning on the page, relative 
 
 If positioning is used wisely, we can achieve:
 
-- **Isolation**: modifications made to elements positioned in this way will not affect other elements within the normal flow (i.e. avoids reflows)
-- **Performance optimization**: positioning plays a key role in optimizing and minimizing updates to the DOM tree
+-	**Isolation**: modifications made to elements positioned in this way will not affect other elements within the normal flow (i.e. avoids reflows)
+-	**Performance optimization**: positioning plays a key role in optimizing and minimizing updates to the DOM tree
 
 ##### Containing block
 
 A containing block is the anchor to which `top, right, bottom, left` apply to an explicitly positioned element. By default, it's the browser viewport (window); however, there are two rules that take precedent:
 
-1. If an element has `position: relative`, its closest **block-level** ancestor element is the containing block
-1. If an element has `position: relative`, it becomes a containing block
+1.	If an element has `position: relative`, its closest **block-level** ancestor element is the containing block
+2.	If an element has `position: relative`, it becomes a containing block
 
 ##### Relative
 
-- Element is positioned according to the normal flow of the document
-    - `offset` is applied relative to itself
-- `offset` does not affect the position of any other element; this, the space allocated for the element in the page layout remains the same as if the element's position was "static"
-- Creates a new **stacking context** when the value of `z-index` is not "auto"
+-	Element is positioned according to the normal flow of the document
+	-	`offset` is applied relative to itself
+-	`offset` does not affect the position of any other element; this, the space allocated for the element in the page layout remains the same as if the element's position was "static"
+-	Creates a new **stacking context** when the value of `z-index` is not "auto"
 
 ##### Absolute
 
-- Element is removed from the normal document flow
-- No space is reserved for the element in the page layout
-- Element is positioned relative to its closest **positioned ancestor** if one exists; otherwise, it is placed relative to the browser viewport
-- Final position is determined by `top, right, bottom, left`
-- This positioning creats a new **stacking context** when the z-index value is not "auto"
-    - Review to page 47-50 of the [slides](#frontend-system-design)
-- 
+-	Element is removed from the normal document flow
+-	No space is reserved for the element in the page layout
+-	Element is positioned relative to its closest **positioned ancestor** if one exists; otherwise, it is placed relative to the browser viewport
+-	Final position is determined by `top, right, bottom, left`
+-	This positioning creats a new **stacking context** when the z-index value is not "auto"
+	-	Review to page 47-50 of the [slides](#frontend-system-design) -
 
 ### Browser graphics API: render object
 
@@ -256,14 +258,14 @@ Render layers are created according to a browser's formatting contexts and stack
 
 A **render layer** is constructed when an element:
 
-- Has explicit CSS properties:
-    - position: relative | absolute
-    - transform
-- It's the root of the page (`<html />`)
-- It is transparent
-- Has a CSS filter
-- Corresponds to a `<canvas>` element that has a 3D (WebGL) context or an accelerated 2D context
-- Corresponds to a `<video>` element
+-	Has explicit CSS properties:
+	-	position: relative | absolute
+	-	transform
+-	It's the root of the page (`<html />`\)
+-	It is transparent
+-	Has a CSS filter
+-	Corresponds to a `<canvas>` element that has a 3D (WebGL) context or an accelerated 2D context
+-	Corresponds to a `<video>` element
 
 However, the GPU is at rendering thousands upon thousands of things, not hundreds, so there's another layer that comes into play to utilize render layers.
 
@@ -271,16 +273,16 @@ However, the GPU is at rendering thousands upon thousands of things, not hundred
 
 A **graphic layer** is constructed when:
 
-- Render Layer has 3D or perspective transform CSS properties
-- Layer is used by:
-    - `<video>` element using accelerated video decoding
-    - `<canvas>` with 3D/2D context
-- Layer uses:
-    - CSS animation for `opacity`
-    - animated `web-kit transform`
-- Layer uses accelerated CSS filters
-- Layer has a descendant that is a **compositing layer**
-- Layer has a sibling with a lower `z-index` which has a compositing layer (i.e., a layer that overlaps a composited layer and should be rendered on top of it)
+-	Render Layer has 3D or perspective transform CSS properties
+-	Layer is used by:
+	-	`<video>` element using accelerated video decoding
+	-	`<canvas>` with 3D/2D context
+-	Layer uses:
+	-	CSS animation for `opacity`
+	-	animated `web-kit transform`
+-	Layer uses accelerated CSS filters
+-	Layer has a descendant that is a **compositing layer**
+-	Layer has a sibling with a lower `z-index` which has a compositing layer (i.e., a layer that overlaps a composited layer and should be rendered on top of it)
 
 So, a graphic layer, or graphic layers in cases where 3D acceleration is being utilized by a render layer, will contain all the necessary information to draw the rendering layers.
 
@@ -294,10 +296,7 @@ Graphic layers are expensive objects to initialize because they use a lot of VRA
 
 window -> document -> body & head
 
-`window`
-`window.document` or `document`
-`window.document.body` or `document.body`
-`window.document.head` or `document.head`
+`window` `window.document` or `document` `window.document.body` or `document.body` `window.document.head` or `document.head`
 
 ### Class hierarchy
 
@@ -315,11 +314,11 @@ When the browser parses the page, it constructs a Hashmap of the elements.
 
 The DOM API provides a variety of methods for querying for HTML elements in the document:
 
-- `getElementById`
-- `getElementByClassName`
-- `getElementsByTagName`
-- `querySelector`
-- `querySelectorAll`
+-	`getElementById`
+-	`getElementByClassName`
+-	`getElementsByTagName`
+-	`querySelector`
+-	`querySelectorAll`
 
 #### `getElemenyById`
 
@@ -331,10 +330,9 @@ Although it's an anti-pattern to overuse IDs because of polution of global scope
 
 Unlike `getElementById`, to get elements by their classname, the browser needs to traverse the entire DOM tree (using DFS + Hashmap -> scans all the elements and collects the ones with the correct class text).
 
-The time complexity is linear, because the browser needs to read the entire DOM tree in the worst case, or O(N); however, browsers utilize Hashmaps and caching, which although is slower on the first query, it is much faster for every subsequent queries. 
+The time complexity is linear, because the browser needs to read the entire DOM tree in the worst case, or O(N); however, browsers utilize Hashmaps and caching, which although is slower on the first query, it is much faster for every subsequent queries.
 
-**One important note:**
-Unlike other query selectors, `getElementsByClassName` returns a `HTMLCollection` which is a live collection of HTML element references (not clones) in the DOM. So, when you update the DOM, your HTMLCollection will also update, but the read cost of that is also O(N) because the browser needs to parse the tree again to verify the collection elements' positions.
+**One important note:** Unlike other query selectors, `getElementsByClassName` returns a `HTMLCollection` which is a live collection of HTML element references (not clones) in the DOM. So, when you update the DOM, your HTMLCollection will also update, but the read cost of that is also O(N) because the browser needs to parse the tree again to verify the collection elements' positions.
 
 This is still a good query when you need to query for multiple elements and you're concerned about memory (collection is made up of references not copies), but you need to utilize this efficiently because the read cost is high (i.e. if you're looping through, you're converting the read cost time complexity to quadratic time).
 
@@ -348,8 +346,7 @@ Like `getElementById`, `querySelector` returns an `Element` not a collection, wh
 
 In 99% of cases, this is your go to selector and it is the second most performant option behind `getElementById`, and thanks to caching and browser optimizations, it is comparable on repetitive runs. Read access is cheap.
 
-**important note**
-The downside of not returning a HTMLCollection (live collection) is you can have a value representing an `Element` that is stale because it was removed or updated in the DOM after you queried for it.
+**important note** The downside of not returning a HTMLCollection (live collection) is you can have a value representing an `Element` that is stale because it was removed or updated in the DOM after you queried for it.
 
 #### `querySelectorAll`
 
@@ -357,33 +354,32 @@ Unlike the rest of the query methods, `querySelectorAll` returns a `NodeList`. I
 
 It's time complexity is like `querySelector`; and it's read cost is O(1) because we're simply reading a key on an object vs traversing the DOM tree again. Read access is cheap.
 
-**important note**
-The downside of not returning a HTMLCollection (live collection) is you can have a value representing an `Element` that is stale because it was removed or updated in the DOM after you queried for it.
+**important note** The downside of not returning a HTMLCollection (live collection) is you can have a value representing an `Element` that is stale because it was removed or updated in the DOM after you queried for it.
 
 ### Adding/removing elements from the DOM
 
 Unfortunately, all DOM API methods for adding elements has pretty high performance impacts because they all trigger reflows, but some are better than others.
 
-- `innerHTML`: extremely high
-- `insertAdjacentHTML`: extremely high
-- `insertAdjacentElement`: high
-- `appendChild`: high
+-	`innerHTML`: extremely high
+-	`insertAdjacentHTML`: extremely high
+-	`insertAdjacentElement`: high
+-	`appendChild`: high
 
 Removing elements can be done with two methods of the same cost:
 
-- `el.remove()`
-- `el.innerHTML = ""`
+-	`el.remove()`
+-	`el.innerHTML = ""`
 
 ### Use of `DocumentFragment`
 
 When we're using vanilla JS/TS to create HTML elements, using a DocumentFragment (`<template>`) is a lightweight, in-memory HTMLElement method for:
 
-- Modifying a custom component/JS-created HTML element's content without causing a reflow
-    - DocumentFragments do not have a position in the page layout, but we can query a `<template>` by its `id` and use that to construct a custom element to the layout.
-    - Obviously, once it is appended to the page layout and has its own render object, then updating that element would cause reflow...
-- Reuse
-- Isolation from the main DOM tree
-- Utilizing HTML to create markup of components
+-	Modifying a custom component/JS-created HTML element's content without causing a reflow
+	-	DocumentFragments do not have a position in the page layout, but we can query a `<template>` by its `id` and use that to construct a custom element to the layout.
+	-	Obviously, once it is appended to the page layout and has its own render object, then updating that element would cause reflow...
+-	Reuse
+-	Isolation from the main DOM tree
+-	Utilizing HTML to create markup of components
 
 ## Web APIs
 
@@ -395,9 +391,9 @@ Unlike most APIs, the observer operates at the native level instead of the event
 
 The observer API has three different parts:
 
-1. Intersection (intersection of a root and target element)
-2. Mutation
-3. Resize
+1.	Intersection (intersection of a root and target element)
+2.	Mutation
+3.	Resize
 
 #### Intersection
 
@@ -405,11 +401,11 @@ The intersection observer watches a target element and triggers a callback when 
 
 The intersection observer requires two things:
 
-- callback: fn to execute on intersection
-- options
-    - root: the "window" we check the intersection against or the browser viewport if undefined
-    - rootMargin: margin around the root
-    - threshold: minimal intersection ratio required to trigger the callback
+-	callback: fn to execute on intersection
+-	options
+	-	root: the "window" we check the intersection against or the browser viewport if undefined
+	-	rootMargin: margin around the root
+	-	threshold: minimal intersection ratio required to trigger the callback
 
 Then, you need to point your observer to your target with `.observe()`.
 
@@ -430,11 +426,10 @@ observer.observe(target)
 
 I'm often used in:
 
-- Virtualization
-- LAzy components
-- Analytics
-- Dynamic UI elements
-
+-	Virtualization
+-	LAzy components
+-	Analytics
+-	Dynamic UI elements
 
 #### Mutation
 
@@ -442,19 +437,19 @@ The mutation observer enables us to monitor changes in the DOM tree.
 
 It takes one argument during instantiation:
 
-- callback
+-	callback
 
 It takes two arguments when calling `observe()`
 
-- target: node we want to track changes from
-- options:
-    - subtree: monitor the entire tree under the target
-    - childList: monitor only the direct children of the target
-    - attributes: monitor for changes to the value of attributes on the target(s)
-    - attributeFilter: filter which attributes to monitor
-    - attributeOldValue: records the previous value of any attribute change if attributes is true
-    - characterData: monitor the specified target for changes to the character data contained within the node
-    - characterDataOldValue: records the previous value of any character data change if characterData is true
+-	target: node we want to track changes from
+-	options:
+	-	subtree: monitor the entire tree under the target
+	-	childList: monitor only the direct children of the target
+	-	attributes: monitor for changes to the value of attributes on the target(s)
+	-	attributeFilter: filter which attributes to monitor
+	-	attributeOldValue: records the previous value of any attribute change if attributes is true
+	-	characterData: monitor the specified target for changes to the character data contained within the node
+	-	characterDataOldValue: records the previous value of any character data change if characterData is true
 
 Options should be toggled wisely as each option increases the number of times the callback is triggered, which could lead to unnecessary performance hits if not required to satisfy functionality requirements (especially "subtree").
 
@@ -481,12 +476,10 @@ function callback (mutations) {
 
 I'm often used in:
 
-- Rich text editors
-- Drawing tools
+-	Rich text editors
+-	Drawing tools
 
-**Important Note**
-It's possible to cause infinite recursion by watching for mutations of an element that we're editing because the edit will cause a mutation on the edit, and on and on and on. It's best to update the element and then append it to the page, instead of appending it to the page and then updating it (which is also causing additional reflows).
-
+**Important Note** It's possible to cause infinite recursion by watching for mutations of an element that we're editing because the edit will cause a mutation on the edit, and on and on and on. It's best to update the element and then append it to the page, instead of appending it to the page and then updating it (which is also causing additional reflows).
 
 #### Resize
 
@@ -495,12 +488,14 @@ The resize observer is used to watch for when a target element resizes.
 There are four ways of "tracking" or reacting to resize events:
 
 On the window:
-1. "resize" event
-2. CSS media queries
+
+1.	"resize" event
+2.	CSS media queries
 
 On an element:
-1. CSS container query
-2. Resize observer
+
+1.	CSS container query
+2.	Resize observer
 
 However, the "resize" event is notariously the most greedy event to listen to because it fires on every single pixel change which hogs the CPU thread, and it can only be attached to the window. Don't use this.
 
@@ -510,57 +505,56 @@ The resize observer is, on average, 10x faster than resize and can be attached t
 
 During instantiation, it takes a single argument:
 
-- callback
+-	callback
 
 The callback accepts two arguments:
 
-- entries
-- observer
+-	entries
+-	observer
 
-```ts
-type ResizeObserverEntry {
-    borderBoxSize: {
-        blockSize: number,
-        inlineSize: number,
-    }[];
-    contentBoxSize: {
-        blockSize: number,
-        inlineSize: number,
-    }[];
-    devicePixelContentBoxSize: {
-        blockSize: number,
-        inlineSize: number,
-    }[];
-    contentRect: DOMRectReadOnly;
-    target: Element | SVGElement;
-}
+	```ts
+	type ResizeObserverEntry {
+	borderBoxSize: {
+	    blockSize: number,
+	    inlineSize: number,
+	}[];
+	contentBoxSize: {
+	    blockSize: number,
+	    inlineSize: number,
+	}[];
+	devicePixelContentBoxSize: {
+	    blockSize: number,
+	    inlineSize: number,
+	}[];
+	contentRect: DOMRectReadOnly;
+	target: Element | SVGElement;
+	}
 
-const callback = (entries) => {
-    for (const entry of entries) {
-        const [width, height] = [
-            entry.borderBoxSize[0].inlineSize,
-            entry.borderBoxSize[0].blockSize
-        ]
+	const callback = (entries) => {
+	for (const entry of entries) {
+	    const [width, height] = [
+	        entry.borderBoxSize[0].inlineSize,
+	        entry.borderBoxSize[0].blockSize
+	    ]
 
-        // your logic here
-    }
-}
-```
+	    // your logic here
+	}
+	}
+	```
 
 When calling `.observe()`, it takes two arguments:
 
-- target
-- options
-    - box: "content-box" | "border-box" | "device-pixel-content-box"
+-	target
+-	options
+	-	box: "content-box" | "border-box" | "device-pixel-content-box"
 
 I'm often used in:
 
-- Adaptive design
-- Charting tools
-- Drawing tools
+-	Adaptive design
+-	Charting tools
+-	Drawing tools
 
-**Important note**
-The callback is still fired just like the "resize" event, but it's at the native level so it's utilizing more powerful and separate resources than the "resize" event. It's still a good idea to debounce your callback.
+**Important note** The callback is still fired just like the "resize" event, but it's at the native level so it's utilizing more powerful and separate resources than the "resize" event. It's still a good idea to debounce your callback.
 
 # Virtualization
 
@@ -570,48 +564,46 @@ Formally, virtualization is maintaining data in memory while rendering only a li
 
 There are three goals for this pattern:
 
-1. Minimize the number of elements rendered in the DOM tree
-2. Minimize the number of DOM mutations
-3. Minimize CPU and memory usage required to maintain a DOM tree
+1.	Minimize the number of elements rendered in the DOM tree
+2.	Minimize the number of DOM mutations
+3.	Minimize CPU and memory usage required to maintain a DOM tree
 
 Here are some rough guidelines as for when to reach for visualization:
 
-- Mobile apps that are rendering large amounts of repetitive data
-- Repetitive, memory-intense content in a scrollable area (news feeds, twitter feed, etc.)
-- Loading 1000+ repetitive elements
-- Whenever s rolling begins to feel sticky
+-	Mobile apps that are rendering large amounts of repetitive data
+-	Repetitive, memory-intense content in a scrollable area (news feeds, twitter feed, etc.)
+-	Loading 1000+ repetitive elements
+-	Whenever s rolling begins to feel sticky
 
 Fortunately, desktop browsers have access to so much memory, virtualization is rarely a concern. In reality, avoiding the complexity is worth a lot more in most cases than the slight performance increases. Even if you need/want to fetch data in chunks, you can just append them all at once as a fragment to the DOM tree without being concerned about performance.
 
 ## Design
 
-Typically, web-based Virtualization is designed with a top and bottom observer and a viewport between them. As a user scrolls down, the viewport triggers the next page of content, and on subsequent triggers via the bottom observer, the components/elements no longer visible above the current viewport are actually reused to generate the new content. By reusing already displayed elements, we're accomplishing goals 1, 2, and 3. When a user scrolls back up,  the process is reversed.
+Typically, web-based Virtualization is designed with a top and bottom observer and a viewport between them. As a user scrolls down, the viewport triggers the next page of content, and on subsequent triggers via the bottom observer, the components/elements no longer visible above the current viewport are actually reused to generate the new content. By reusing already displayed elements, we're accomplishing goals 1, 2, and 3. When a user scrolls back up, the process is reversed.
 
-1. Implement and target your top and bottom observers
-2. Register the callback that tracks the intersection with the top and bottom observers.
-    i. Setting up intersection observers for the top and bottom observers
-3. Select and prepare elements for recycling
+1.	Implement and target your top and bottom observers
+2.	Register the callback that tracks the intersection with the top and bottom observers. i. Setting up intersection observers for the top and bottom observers
+3.	Select and prepare elements for recycling
 
 ### Recycling
 
-Recycling involves maintaining an array of elements in memory, called **element pool**. This pool is used to recycle elements no longer in the viewport to avoid creating unnecessary elements, which triggers additional reflows and increases the computing and maintenance cost of the DOM tree. 
+Recycling involves maintaining an array of elements in memory, called **element pool**. This pool is used to recycle elements no longer in the viewport to avoid creating unnecessary elements, which triggers additional reflows and increases the computing and maintenance cost of the DOM tree.
 
 When the user scrolls the viewport and triggers the bottom observer, we're going to slice the element pool array in half and swap places so that item 1, 2, and 3... are the last items, etc.
 
 The first step is to update how the elements are stored in memory.
 
-- As we render the elements up until we hit our limit, store the element in our pool
-- Once we hit our limit, slice our pool and half and swap the position of the halves
+-	As we render the elements up until we hit our limit, store the element in our pool
+-	Once we hit our limit, slice our pool and half and swap the position of the halves
 
 Once we have hit our pool limit and started swapping the halves of our pool:
 
-- We need to move all our items displayed from our pool into a new stacking context with `position: absolute`
-    - This also simplifies our positioning calculations
-- We need to calculate the new Y positions for each item
-- We need to calcualte the new Y position for the top observer
+-	We need to move all our items displayed from our pool into a new stacking context with `position: absolute`
+	-	This also simplifies our positioning calculations
+-	We need to calculate the new Y positions for each item
+-	We need to calcualte the new Y position for the top observer
 
-**Important note**
-This method does not cause any reflow, but it does create a new stacking context where we will utilize GPU acceleration to position elements via CSS translateY.
+**Important note** This method does not cause any reflow, but it does create a new stacking context where we will utilize GPU acceleration to position elements via CSS translateY.
 
 #### Calculating new Y positions for each displayed item
 
@@ -625,11 +617,9 @@ Finally, we need to move the top observer.
 
 The top observer's top position will be the "first" element's Y position. The bottom observer's Y position will be the last pool element's Y position + its height and margin.
 
-**Note**
-I'm not convinced the observers need to move because if you're always initializing the "first" pool element's Y position to 0, the top observer SHOULD always be in a good spot (where it was initialized).
+**Note** I'm not convinced the observers need to move because if you're always initializing the "first" pool element's Y position to 0, the top observer SHOULD always be in a good spot (where it was initialized).
 
 I was right. Moving the top observer just creates a ton of white space above the top observer as the elements keep moving further and further down the page.
-
 
 When we execute recycling, we must update our start and end pointers.
 
@@ -637,51 +627,51 @@ When we execute recycling, we must update our start and end pointers.
 
 Two types of frontend application state:
 
-1. Data classes
-2. Data properties
+1.	Data classes
+2.	Data properties
 
 ## Data classes
 
-- App config
-    - User preferences
-        - theme
-        - locale
-        - language
-        - font-size
-        - etc
-    - Accessibility settings
-- UI Elements' State
-    - Selected controls
-    - Selected text formatting (Google Docs)
-    - Show/hide state
-    - Any state related to the current visual state of the page
-    - Entered text, etc.
-- Server data
-    - Messages
-    - Posts
-    - Etc., data received from the backend
+-	App config
+	-	User preferences
+		-	theme
+		-	locale
+		-	language
+		-	font-size
+		-	etc
+	-	Accessibility settings
+-	UI Elements' State
+	-	Selected controls
+	-	Selected text formatting (Google Docs)
+	-	Show/hide state
+	-	Any state related to the current visual state of the page
+	-	Entered text, etc.
+-	Server data
+	-	Messages
+	-	Posts
+	-	Etc., data received from the backend
 
 ## Data properties
 
-- Access level
-- Read/write frequency
-- Size
+-	Access level
+-	Read/write frequency
+-	Size
 
 ## General principles
 
 In order of importance, we want to improve state design by:
 
-1. Minimize access cost to our state
-2. Minimize search cost
-3. Minimize RAM usage
+1.	Minimize access cost to our state
+2.	Minimize search cost
+3.	Minimize RAM usage
 
 ### Minimizing access cost to state
 
 **Normalization** is the process of constructing data structures in a way that achieves the following goals:
 
-1. Optimize access performance
-2. Optimize storage structures
-3. Increase developer readability and maintainability
+1.	Optimize access performance
+2.	Optimize storage structures
+3.	Increase developer readability and maintainability
 
 #### Problem normalization helps avoid
 
@@ -709,8 +699,8 @@ type User {
 
 The problem with this is the access cost of values like "conversations," or worse, "messages" in "conversations," because the time complexity becomes:
 
-- Access conversation - O(C)
-- Access message - O(M)
+-	Access conversation - O(C)
+-	Access message - O(M)
 
 **Access cost of message** - O(C) + O(M)
 
@@ -722,8 +712,8 @@ Review page 192 of the [Slides](https://static.frontendmasters.com/resources/202
 
 There are seven different "forms" or levels to normalization, but for the frontend, we're only concerned about the first two:
 
-1. (1NF) Data is atomic && it has a primary key
-2. (2NF) 1NF + non-primary keys depend on entity's primary key
+1.	(1NF) Data is atomic && it has a primary key
+2.	(2NF) 1NF + non-primary keys depend on entity's primary key
 
 ```ts
 // (Non-NF)
@@ -802,6 +792,277 @@ const countries: { [k: string]: string } = {
 
 This allows us to use an O(1) time complexity (almost instant) to access any data directly with the key. We do not need to filter, etc.
 
+#### Storage options
+
+| Type | Indexed DB | Local storage | Session storage |
+| -- | :--: | :--: | :--: |
+| Storage capacity | unlimited | 5mb | 5mb|
+| Indexing | Yes | No | No |
+| Advanced search | Yes | No | No |
+| Data types | number, date, string, binary, array | string | string |
+| Blocking thread | No | Yes | Yes |
+| Asynchronous | Yes | No | No |
+
+### Minimizing search cost (ex. Facebook Messenger)
+
+Given that any user could have multiple conversations with thousands of messages each, there needs to be a cheap way to search for messages within all those conversations.
+
+Instead of filtering through every conversation and every message (quadratic time), we can store messages as an **inverted index table**.
+
+```ts
+type MessagesBefore = {
+    id: string
+    content: string
+    timestamp: number
+}
+
+type MessagesOptimizedForSearch = {
+    [k: string]: [number, number][]
+}
+
+const message = {
+    "hello": [[1, 1000]],
+    "hey": [[2, 2000]],
+}
+
+// Utilizing the IndexDB API, we can store indexes of the composite keys, which is effectively this if JavaScript allowed it
+const message = {
+    ["h", "he", "hel", "hell", "hello"]: [[1, 1000]],
+}
+```
+
+Now, instead of searching through each message's content property, we can store the content, and every composite of the content, as a key which allows us index access to messages. The value of the a message will be an array of tuples representing the message id and timestamp.
+
+## Summary
+
+1. Know your scale - optimize accordingly
+2. Always start with how you structure your data
+3. Use normal forms to optimize access cost
+4. Use indexes if in-app search is required
+5. Offload data** to hard-drive when it's needed
+6. Pick a suitable storage
+
 # Networks
+
+Two main protocols:
+
+1. UDP
+2. TCP
+
+## UDP (user datagram protocol)
+
+**UDP requests are a two step process**:
+1. Client makes a request to server
+2. Server responds
+
+Ideal for speed, but server cannot validate data is received by the client.
+
+## TCP (transmission control protocol)
+
+**TCP is a minimum five step process:**
+(triple handshake)
+1. Client makes a synchronous request to talk to the server
+2. Serve responds synchronously that it acknowledges the request to talk
+3. Client acknowledges the servers acknowledge 
+(TCP socket is now opened)
+4. Client makes a request
+5. Server responds
+
+Slower than UDP but ensures data validity to from the server to the client.
+
+## Protocol overview
+
+- TCP extends to:
+    - HTTP 1.1 extends to:
+        - HTTP 2 extends to:
+            - SSE (server side events)
+        - Web sockets (however, web sockets only uses the part of HTTP 1.1 which allows it to upgrade to TCP)
+- UDP extends to:
+    - QUIK (created by Google) extends to:
+        - HTTP 3 (coming soon)
+    - Web RTC
+
+## Mobile device
+
+### Networking modules 
+
+Mobile devices have two types of networking modules:
+
+- Mono, which is receive-only but energy efficient
+- Duplex (bi-directional), which can receive and send data but is very energy innefficient
+
+### Battery
+
+| Property | Value |
+|--|--|
+| Timeout | 30 seconds |
+| Timeframe | 5 minutes |
+| Battery | 2000mAh / 3.7V |
+| Energy cost | 600 joules / 5-minute |
+
+The battery life would be **3.7 hours** simple performing a GET request every 5 minutes with a 30 second timeout.
+
+## Examples of protocol usage
+
+API protocal design example
+
+| Request | Mobile | Desktop | function |
+|--|--|--|--|
+| getShoppingOrders | SSE | long-polling, SSE | getShoppingOrders(timestamp: number, count: number, token): Order |
+| getNewMessages | SSE | short-polling, SSE | getNewMessages(timestamp: number, count: number, token): Message |
+| sendMessage | HTTP POST | HTTP POST | sendMessage(message, token): Message  |
+
+### Fetching new orders as they "come in"
+
+#### Long/short polling
+
+Polling is simply making a request on a set interval. 
+
+```ts
+setInterval(() => {
+    fetch(api, params).then(updateOrders)
+}, timeout)
+```
+
+##### When to use it
+
+Desktop applications when some delay is acceptable (i.e. you don't need realtime updates), such as loading new group posts.
+
+##### When to avoid it
+
+Mobile applications
+
+##### Problems
+
+1. Speed (technically)
+    1. DNS request (double handshake)
+    2. Establishing TCP (triple handshake)
+    3. HTTP request (double handshake)
+2. Inefficient network usage
+    1. When utilizing HTTP/1.1, headers are not compressed and can easily add 50kb to every request
+3. Energy consumption
+    1. A TCP connection creates a TCP socket, which stays open as long as required; however, this means long/short polling will continue to utilize the open TCP socket indefinitely, and on mobile devices, with limited resources and battery, it's a significant power draw.
+    2. TCP uses the "duplex" network module on mobile devices
+4. Latency over mobile networks
+    1. TCP sockets requre reinitialization when they're closed, which happens when a mobile device disconnects from one network tower and reconnects to another
+        1. Server has to maintain a copy of the state
+        2. Reconnection needs to be implemented on the client
+        3. New TCP connection requires another triple handshake
+
+##### Pros
+
+1. Easy and cheap to implement
+2. No additional infrastructure is needed
+3. 99.99% of servers support it
+
+##### Cons
+
+1. Battery innefficient (high CPU usage due to open TCP connection and transmitter usage)
+2. Network and data inefficient (header overhead)
+3. HTTP 1.1 requires request headers to be sent with every request
+4. Latency can degrade very quickly on mobile networks
+
+#### Serve sent events (SSE)
+
+SSE is when the client simply listens and responds to the server.
+
+##### When to use it
+
+1. Desktop and mobile applications when you must receive data with minimum latency
+2. When web sockets aren't worth the infrastructure cost and some latency is acceptable
+3. Large text-data streaming
+
+##### When to avoid it
+
+Simple use cases; just use long polling
+
+##### Pros
+
+1. Duplex communication is only used when establishing the initial TCP connection
+2. Battery efficient (mono network module)
+3. It doesn't send junk data (unnecessary headers)
+4. Reconnection is **handled automatically**
+5. Easy to horizontally scale since servers don't need to know the state
+6. Since SSE is HTTP 2, it can re-use existing TCP connection with a server
+7. Fast
+
+##### Cons
+
+1. Read-only; you can't push data to the server
+2. Only string data is supported; you will need to parse the server payload
+    1. Does not work with byte data
+
+#### Web sockets
+
+Web sockets are upgraded HTTP 1.1 connections (i.e. TCP connections).
+
+They work like so:
+
+1. Client sends a handshake request with UPGRADE headers
+2. The servers responds with a successful request
+3. Browser upgrades the protocol to **Web-Sockets**
+4. Client and server has a *bi-directional* communication to send binary packages over its TCP socket
+
+Although they extend from HTTP 1.1, they are different from HTTP requests:
+
+1. HTTP is used only for the initial handshake
+2. A pure TCP connection is used after the handshake
+3. TCP-protocol allows establishing ~65K connections with one socket
+
+##### When to use it
+
+Real-time communication environments:
+
+- Working with machine sensors and controls
+- Online gaming
+- Trading
+- Precise location tracking
+
+##### When to avoid it
+
+##### Pros
+
+1. Web sockets provide almost real-time communication
+2. Unlimited number of connections
+
+##### Cons
+
+1. Infrastructure cost is HUGE in time, effort, and money
+2. Reconnection is not implemented
+3. Web sockets are stateful (therefore, the backend needs to keep a copy of the state in case reconnection is required or all state is lost)
+4. Computing resource inefficiency
+    1. Needs to maintain a constant TCP connection
+    2. Uses duplex antenna
+    3. Drains energy and utilizes the CPU
+
+## Classic HTTP vs GraphQL
+
+### GraphQL
+
+#### When to use
+
+Medium to large application without a widely used public API; has a large budget and team size; is utilizing isomorphic types, unconcerned about bundle, and has a complex API model.
+
+GraphQL is really meant for complex apps because it can really reduce the complexity between the server and the client by creating an **internal implementation** layer where different APIs utilizing different protocols can be implemented with the same interfaces so regardless of what API and where you're calling said API from, it's a seamless, intuitive experience.
+
+#### When not to use
+
+- Small applications
+- Widely used public API
+- Limited budget or small team size
+- Not utilizing isomorphic data types between client and server
+- Bundle size is critical
+- Simple API model
+
+#### Pros
+
+Reduces complexity between the server and client in complex applications.
+
+#### Cons
+
+1. Increased bundle size (1.5mb)
+2. Additional client library
+3. Additional client caching layer
+4. Additional state manager to ensure GraphQL client is syncing state between the client and the server
 
 # Web application performance
