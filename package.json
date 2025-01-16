@@ -1,0 +1,24 @@
+{
+  "name": "fsd",
+  "version": "1.0.0",
+  "description": "Frontend design system documentation",
+  "keywords": [
+    "frontend",
+    "design"
+  ],
+  "homepage": "https://github.com/Johnsoct/fsd#readme",
+  "bugs": {
+    "url": "https://github.com/Johnsoct/fsd/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Johnsoct/fsd.git"
+  },
+  "license": "ISC",
+  "author": "Taylor Johnson",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
