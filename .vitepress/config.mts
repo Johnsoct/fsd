@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-    base: "/Johnsoct/",
+    base: "/fsd/",
     cleanUrls: true,
     description: "Frontend system design documentation",
     srcDir: "src",
