@@ -1,0 +1,34 @@
+{
+    "name": "fsd",
+    "version": "1.0.0",
+    "description": "Frontend design system documentation",
+    "keywords": [
+        "frontend",
+        "design"
+    ],
+    "homepage": "https://github.com/Johnsoct/fsd#readme",
+    "bugs": {
+        "url": "https://github.com/Johnsoct/fsd/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Johnsoct/fsd.git"
+    },
+    "license": "ISC",
+    "author": "Taylor Johnson",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "docs:dev": "vitepress dev",
+        "docs:build": "vitepress build",
+        "docs:preview": "vitepress preview"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.18.0",
+        "eslint": "^9.18.0",
+        "globals": "^15.14.0",
+        "typescript-eslint": "^8.20.0",
+        "vitepress": "^1.5.0"
+    }
+}
