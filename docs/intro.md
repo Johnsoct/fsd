@@ -2,6 +2,14 @@
 <!-- TODO: add header too all doc files with slide and relevant page numbers -->
 # Frontend system design
 
+::: details 
+# Test
+
+1. Test1
+2. Test2
+3. Test4
+:::
+
 [Slides](https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf)
 
 There are three parts to most application designs:
