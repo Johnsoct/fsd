@@ -9,12 +9,12 @@
 
 <style>
 .DocHeading {
-    border-bottom: 1px solid #2e2e32;
-    margin-bottom: 2rem;
+    /* border-bottom: 1px solid #2e2e32; */
+    /* margin-bottom: 2rem; */
 }
 
 .DocHeading__link {
     display: block;
-    padding: 1rem 0 2rem;
+    padding: 1rem 0 0;
 }
 </style>

@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD030 MD033 -->
 
 <script setup>
 import DocHeading from "../../components/doc-heading.vue"
@@ -8,14 +8,16 @@ import DocHeading from "../../components/doc-heading.vue"
 
 <DocHeading />
 
-Two types of frontend application state:
+## Two types of frontend application state
 
 1.	Data classes
 2.	Data properties
 
-## Data classes
+### Data classes
 
--	App config
+Data classes are more concrete values. They'll represent the contents of your data structures.
+
+-   User configuration settings
 	-	User preferences
 		-	theme
 		-	locale
@@ -34,15 +36,17 @@ Two types of frontend application state:
 	-	Posts
 	-	Etc., data received from the backend
 
-## Data properties
+### Data properties
+
+Data properties are more abstract values to consider when structuring your state.
 
 -	Access level
 -	Read/write frequency
 -	Size
 
-## General principles
+## General guidelines for approaching state design 
 
-In order of importance, we want to improve state design by:
+In order of importance, we want to design our state to:
 
 1.	Minimize access cost to our state
 2.	Minimize search cost
@@ -56,47 +60,62 @@ In order of importance, we want to improve state design by:
 2.	Optimize storage structures
 3.	Increase developer readability and maintainability
 
-#### Problem normalization helps avoid
+**Important note**:
 
-As I have done many times in the past to simplify the mental bandwidth required to get the full picture of the a frontend's data structures, I have typically stored all data relevant to a thing in nested objects.
+It is impossible to avoid time complexities greater than O(1), but the goal is to reduce those cases as much as possible.
+
+#### The problem normalization prevents
+
+As I have done many times in the past to simplify the mental bandwidth required to get the full picture of the a frontend's data structures, I have typically stored all data relevant to an entity in nested objects.
 
 ```ts
 type Contact {
-    name: string;
     address: string;
+    id: string;
+    name: string;
+}
+
+type Message {
+    id: string;
+    message: string;
+    timestamp: Date;
 }
 
 type Conversation {
     contact: Contact;
+    id: string;
     messages: Message[];
-    // ...
 }
+
 type User {
-    name: string;
-    address: string;
     contacts: Contact[];
-    conversations: Conversations[];
+    conversations: Conversation[];
+    id: string;
+    name: string;
     // ...
 }
 ```
 
 The problem with this is the access cost of values like "conversations," or worse, "messages" in "conversations," because the time complexity becomes:
 
--	Access conversation - O(C)
--	Access message - O(M)
+-	Access cost of GET'ing a specific conversation - O(N)
+-	Access cost of GET'ing a specific message - O(N) + O(N^2) = quadratic
 
-**Access cost of message** - O(C) + O(M)
+##### Explanation
 
 You're filtering conversations for the right conversation and then filtering messages for the right message. Although it's logically simple, it's very innefficient.
 
 #### Normalization implementation
+
+[Database normalization](https://en.wikipedia.org/wiki/Database_normalization)
 
 Review page 192 of the [Slides](https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf)
 
 There are seven different "forms" or levels to normalization, but for the frontend, we're only concerned about the first two:
 
 1.	(1NF) Data is atomic && it has a primary key
-2.	(2NF) 1NF + non-primary keys depend on entity's primary key
+    1. i.e. A property of an object should not be a complex data type
+2.	(2NF) 1NF + non-primary keys depend on their respective entity's primary key
 
 ```ts
 // (Non-NF)
@@ -173,9 +192,9 @@ const countries: { [k: string]: string } = {
 }
 ```
 
-This allows us to use an O(1) time complexity (almost instant) to access any data directly with the key. We do not need to filter, etc.
+This allows us to use an O(1) time complexity (almost instant) to access any data directly with the key. We do not need to filter or loop over values within an entity.
 
-#### Storage options
+#### Browser storage options
 
 | Type | Indexed DB | Local storage | Session storage |
 | -- | :--: | :--: | :--: |
@@ -200,7 +219,7 @@ type MessagesBefore = {
 }
 
 type MessagesOptimizedForSearch = {
-    [k: string]: [number, number][]
+    [k: string]: [string, number][]
 }
 
 const message = {
@@ -214,7 +233,7 @@ const message = {
 }
 ```
 
-Now, instead of searching through each message's content property, we can store the content, and every composite of the content, as a key which allows us index access to messages. The value of the a message will be an array of tuples representing the message id and timestamp.
+Now, instead of searching through each message's content property, we can store the content, and every composite of the content, as a key which allows us index access to messages. The value of a message will be tuple representing the message id and timestamp.
 
 ## Summary
 
@@ -222,5 +241,5 @@ Now, instead of searching through each message's content property, we can store 
 2. Always start with how you structure your data
 3. Use normal forms to optimize access cost
 4. Use indexes if in-app search is required
-5. Offload data** to hard-drive when it's needed
+5. Offload data to hard-drive when it's needed (IndexDB, browser storage)
 6. Pick a suitable storage

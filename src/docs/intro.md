@@ -9,13 +9,13 @@ import DocHeading from "../../components/doc-heading.vue"
 
 <DocHeading />
 
-There are three parts to most application designs:
+## Every application has at least three parts
 
 1.	Backend
 2.	API
 3.	Frontend
 
-The frontend system is comprised of four major design considerations, which we'll call **CFDC** (core frontend design considerations):
+### There are four major considerations when designing the frontend
 
 1.	API communication
 2.	UI data management (state management)
