@@ -2,8 +2,11 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-    title: "FSD",
+    base: "/Johnsoct/",
+    cleanUrls: true,
     description: "Frontend system design documentation",
+    srcDir: "src",
+    title: "FSD",
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
         nav: [
