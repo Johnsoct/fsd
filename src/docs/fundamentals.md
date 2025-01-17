@@ -1,5 +1,12 @@
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+
+<script setup>
+import DocHeading from "../../components/doc-heading.vue"
+</script>
+
 # Important fundamentals
+
+<DocHeading />
 
 Before getting into CFDC, we need to cover some important fundamentals at a lower level:
 

@@ -1,16 +1,13 @@
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+
+<script setup>
+import DocHeading from "../../components/doc-heading.vue"
+</script>
+
 <!-- TODO: add header too all doc files with slide and relevant page numbers -->
 # Frontend system design
 
-::: details 
-# Test
-
-1. Test1
-2. Test2
-3. Test4
-:::
-
-[Slides](https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf)
+<DocHeading />
 
 There are three parts to most application designs:
 

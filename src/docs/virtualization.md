@@ -1,5 +1,12 @@
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+
+<script setup>
+import DocHeading from "../../components/doc-heading.vue"
+</script>
+
 # Virtualization
+
+<DocHeading />
 
 Virtualization is a UI optimization technique for minimizing the number of DOM elements in the tree based to avoid increasing the cost of maintaining that tree and the resources the browser needs to do so. This is especially common in apps with infinite scrolling, but is pertinent to any application with an abnormally long DOM tree.
 
