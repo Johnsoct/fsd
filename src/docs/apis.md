@@ -1,19 +1,51 @@
+---
+next:
+    text: UI Interactions
+    link: /docs/ui-interactions
+prev:
+    text: State 
+    link: /docs/state
+---
+
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
 
 <script setup>
 import DocHeading from "../../components/doc-heading.vue"
 </script>
 
-# Networks
+# APIs
 
 <DocHeading />
 
-Two main protocols:
+[[toc]]
+
+<hr>
+
+In this module, we'll cover:
+
+-	Intro to browser networking
+-	Transport protocols
+-	Talking to servers via long-polling, web-sockets, and SSE
+-	Overview of when to use GraphQL
+
+## Introduction to browser networking
+
+Two main transport protocols:
 
 1. UDP
 2. TCP
 
-## UDP (user datagram protocol)
+- TCP extends to:
+    - HTTP 1.1 extends to:
+        - HTTP 2 extends to:
+            - SSE (server side events)
+        - Web sockets (however, web sockets only uses the part of HTTP 1.1 which allows it to upgrade to TCP)
+- UDP extends to:
+    - QUIK (created by Google) extends to:
+        - HTTP 3 (coming soon)
+    - Web RTC
+
+### UDP (user datagram protocol)
 
 **UDP requests are a two step process**:
 1. Client makes a request to server
@@ -21,7 +53,7 @@ Two main protocols:
 
 Ideal for speed, but server cannot validate data is received by the client.
 
-## TCP (transmission control protocol)
+### TCP (transmission control protocol)
 
 **TCP is a minimum five step process:**
 (triple handshake)
@@ -34,21 +66,9 @@ Ideal for speed, but server cannot validate data is received by the client.
 
 Slower than UDP but ensures data validity to from the server to the client.
 
-## Protocol overview
+## Mobile devices
 
-- TCP extends to:
-    - HTTP 1.1 extends to:
-        - HTTP 2 extends to:
-            - SSE (server side events)
-        - Web sockets (however, web sockets only uses the part of HTTP 1.1 which allows it to upgrade to TCP)
-- UDP extends to:
-    - QUIK (created by Google) extends to:
-        - HTTP 3 (coming soon)
-    - Web RTC
-
-## Mobile device
-
-### Networking modules 
+### Networking modules
 
 Mobile devices have two types of networking modules:
 
@@ -66,9 +86,9 @@ Mobile devices have two types of networking modules:
 
 The battery life would be **3.7 hours** simple performing a GET request every 5 minutes with a 30 second timeout.
 
-## Examples of protocol usage
+## Talking to servers via short/long-polling, web-sockets, and SSE
 
-API protocal design example
+Examples of use cases for different methods of communication with a server
 
 | Request | Mobile | Desktop | function |
 |--|--|--|--|
@@ -80,7 +100,7 @@ API protocal design example
 
 #### Long/short polling
 
-Polling is simply making a request on a set interval. 
+Polling is simply making a request on a set interval. _Short polling_ refers to an interval around five seconds, or less than the set time a TCP socket closes from inactivity or timeout. _Long polling_ refers to an interval greater than or equal to the set time a TCP socket closes.
 
 ```ts
 setInterval(() => {

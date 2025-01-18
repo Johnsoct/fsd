@@ -1,9 +1,12 @@
 <template>
     <div class="DocHeading">
         <a alt="Frontend Masters - Frontend Design Systems Slides" class="DocHeading__link"
-            src="https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf">
+            href="https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf"
+            target="_blank">
             Slides
         </a>
+
+        <hr>
     </div>
 </template>
 

@@ -1,4 +1,13 @@
-<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+---
+next:
+    text:  State
+    link: /docs/state
+prev:
+    text: Introduction to FSD
+    link: /docs/intro
+---
+
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 -->
 
 <script setup>
 import DocHeading from "../../components/doc-heading.vue"
@@ -8,45 +17,167 @@ import DocHeading from "../../components/doc-heading.vue"
 
 <DocHeading />
 
-Before getting into CFDC, we need to cover some important fundamentals at a lower level:
+In this module, we'll cover:
 
-1.	Rendering in the browser
-2.	DOM API(s)
-3.	Web APIs for complex UI Patterns
-	1.	Observer API (intersection, mutation, and resize observers)
+- How browser rendering really works
+- DOM API(s) for performant manipulation
+- Web APIs for complex UI Patterns
+	- Observer API
+        - Intersection
+        - Mutation
+        - Resize
+- Virtualization
 
-After, we'll get into:
+<hr>
 
-1.	Virtualisation
-2.	Application state design
-	1.	Search / access optimization
-	2.	Browser storage APIs
-	3.	Memory offloading
-3.	Networks
-	1.	Intro to browser networking
-	2.	Protocols
-	3.	Talking to servers via long-polling, web-sockets, and SSE
-	4.	Overview of REST vs GraphQL
-4.	Web application performance
+::: details How browser rendering really works {open}
 
-Let's get started!
+The browser has a few systems that are directly affected by our HTML, CSS, and JavaScript, and if we're not careful, we can create very memory-heavy, CPU-intensive DOM trees; and once we have an inefficient DOM tree, the browser has to maintain it and every new DOM manipulation or style change can lead to slow, janky updates.
 
-## Rendering in the browser
+First and foremost, we need to understand how the browser calculates an elements position, and that's by use of the "box model," which is used by the browser to calculate the dimensions of an element and where it fits into the browser formatting context(s), which we'll also cover below.
 
-### Reflow
+## Box Model
 
-Reflow is a sub-process of the process how HTML, CSS, and JavaScript are combined and used to display some shit on the page.
+4 Layers (innermost to outtermost):
 
-#### Process
+1.	content-box
+2.	padding-box
+3.	border-box
+4.	margin-box
+
+![Box model graphic](../images/compressed/box-model.webp)
+
+<br>
+
+The box model determines two main properties on every HTML element:
+
+1.	Size
+2.	Type
+
+### Size
+
+Two possible values:
+
+> [!TIP] Intrinsic
+> The box content determines the spaces it occupies
+
+> [!TIP] Restricted
+> The box's size is governed by a set of rules:
+> - CSS (width and height)
+> - Constraint from its parent context or other boxes:
+>     - flex or grid layout systems
+>     - % of parent size
+>     - aspect-ratio if an image
+>     - Other siblings
+
+### Type
+
+Three possible values:
+
+> [!TIP] Block level
+> Including, but not restricted by `display: block` 
+
+> [!TIP] Inline  level
+> `display: inline`
+
+> [!TIP] Anonymous 
+> box
+
+#### Box type: block
+
+-	Takes 100% of parent context's width
+-	Height is equivalent to its content (intrinsic)
+-	Rendered from top to bottom
+-	Governed by **Block Context Formatting** (BCF)
+
+> [!INFO] Block Context Formatting
+> Subsystem of the Browser Formatting Context system; vertically and horizontally organizes the block contexts of the DOM tree. [Read more](#browser-formatting-context)
+
+##### Calculating the width of a block element
+
+Depending on the CSS `box-sizing` property value, the width calculation is different. 
+
+<br>
+
+When `box-sizing: content-box`, each layer of the box model needs to be calculated to get the accurate width of the element.
+
+```scss
+// Psuedo code
+box-sizing: content-box;
+width: calc(margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right);
+```
+
+When `box-sizing: border-box`, the content portion of the box wraps the border, padding, and content layer into one layer, simplifying the calculation.
+
+```scss
+// Psuedo code
+box-sizing: border-box;
+width: calc(margin-left + content-width + margin-right);
+```
+
+##### Block type HTML elements (not an exhaustive list)
+
+`address, article, aside, blockquote, canvas, div, figcaption, figure, footer, form, h1-h6, header, hr, li, main, nav, noscript, ol, p, pre, section, table, ul, video`
+
+#### Box type: inline
+
+-	Rendered like a string, from left to right and top to bottom
+-	Governed by **Inline Formatting Context** (IFC)
+-	Generate inline-level boxes
+
+> [!INFO] Inline Formatting Context
+> Subsystem of the Browser Formatting Context system; horizontally organizes the inline contexts of the DOM tree. [Read more](#browser-formatting-context)
+
+##### Calculating the width of an inline element
+
+-	Inline elements **do not** respond to `width` and `height` properties (literally, it does not affect their size)
+-	Inline elements **do not** react to vertical margins
+-	Inline elements' padding does not alter their height
+
+```scss
+width: calc(margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right);
+```
+
+##### HTML tags that are inline type boxes (not an exhaustive list)
+
+`a, acronym, abbr, br, button, i, img, input, object, q, small, span, strong, time, b, code, em, label, select, textarea`
+
+#### Box type: anonymous
+
+Anonymous (inline) boxes are any text directly contained inside a block container element.
+
+```html
+<div>
+    I am treated as an anonymous inline element
+    because I'm directly inside of a block container element.
+</div>
+```
+
+> [!WARNING]
+> This is considered a bad practice because it's not semantic; therefore, it's not accessible.
+
+## Reflow
+
+![Reflow infographic](../images/compressed/reflow.webp)
+
+Reflow refers to the process of recalculating elements' positioning in the DOM after the original render. It is a process of combining HTML, CSS, and JavaScript to display something on the page; however, it's unique in that it only happens when the original DOM rendering changes, such as being updated with new elements or changing the order of existing elements.
+
+> [!IMPORTANT]
+> Reflow triggers when the browser needs to recalculate the position or geometry of any part of the DOM. Typically, this is followed by repainting.
+
+> [!INFO] Repainting
+> Repainting is the process by which the browser draws every element in the DOM.
+
+### Normal DOM rendering process
 
 1.	HTML is converted into a DOM tree; CSS is converted into a CSSOM tree
 2.	The DOM and CSSOM are combined into a render tree
 3.	Reflow
 4.	Repaint
 
-#### Reflow
+### Reflow
 
-Default pipeline (unoptimized):
+By default, reflow goes through all five of the following steps; however, by utilizing certain JavaScript and CSS techniques, we can reduce default pipeline down to what we'll call the "optimized" pipeline.
 
 1.	JavaScript (DOM manipulations)
 2.	Style (CSS changes)
@@ -59,11 +190,7 @@ Optimized pipeline:
 1.	Paint
 2.	Composite
 
-We want to minimize the number of DOM manipuations (via JavaScript) that cause the first three steps in the reflow process, and by utilizing CSS and DOM manipulations that create new stacking contexts, we're able to optimize the reflow steps.
-
-**Example of triggering the initial pipeline**
-
-This example triggers all the steps.
+#### Example of triggering the default pipeline
 
 This causes the entire page layout to recalculate because margin affects page layout, so every element's position needs to be recalculated.
 
@@ -78,13 +205,39 @@ This causes the entire page layout to recalculate because margin affects page la
 }
 ```
 
-**Example of optimizing the reflow process**
 
-This example does not trigger the "style" or "layout" steps.
+#### Techniques to utilize the optimized pipeline
 
-Since transform moves the element out of the normal flow and into a new stacking context, the normal flow is not required to be recalculated when the element being transformed is... transformed.
+- Minimize the number of DOM manipuations (via JavaScript) that cause the first three steps in the reflow process
+- Utilize CSS and DOM manipulations that create new stacking contexts
+
+```js
+// Utilizing the DocumentFragment to append multiple children trigging one reflow
+// vs appending each child one at a time, triggering many reflows
+const fragment = new DocumentFragment()
+const target = document.getElementById("target")
+
+for (const datum of data) {
+    const card = createNewCardElement(datum)
+
+    fragment.appendChild(card)
+}
+
+target.appendChild(fragment)
+```
+
+<br>
 
 ```css
+/*
+ * This example does not trigger the "javascript," "style,"
+ * or "layout" steps in the default pipeline 
+ *
+ * Since transform moves the element out of the normal flow and 
+ * into a new stacking context, the normal flow is not required
+ * to be recalculated when the element being transformed is... transformed.
+*/
+
 @keyframes moving-down-fast {
     from {
         transform: translateY(0px);
@@ -95,113 +248,72 @@ Since transform moves the element out of the normal flow and into a new stacking
 }
 ```
 
-### Box Model
+> [!INFO] Stacking Contexts
+> Stacking Contexts are layers on top of the normal flow of the DOM tree (like `z-index`) where entire formatting contexts can exist and be manipulated without triggering reflows in the normal flow, or the original stacking context. [Read more](#stacking-context)
 
-4 Layers (innermost to outtermost):
+## Browser Formatting Context
 
-1.	content-box
-2.	padding-box
-3.	border-box
-4.	margin-box
+Pleaes look at pages 18-27 in the [slides](https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf#page=19). Exercise at pages 29-39 in the [slides](https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf#page=29).
 
-The box model supports two main properties:
+### Key ideas behind BFC
 
-1.	Size
-2.	Type
+> [!TIP] Isolation
+> Elements within a context are shielded from the rules of external contexts
 
-#### Size
+> [!TIP] Scalability
+> Introducing a new ruleset for eleme[nts is as simple as creating new **Contexts** (flex-box, grid, etc.)
 
-Size can be one of two values:
+> [!TIP] Predictability
+> With a strict rule set, the placement of elements is predictable
 
-**Intrinsic**: the box content determines the spaces it occupies **Restricted**: the box's size is governed by a set of rules:
+## Stacking context
 
-```
-- CSS (width and height)
-- Constraint from its parent context or other boxes:
-    - flex or grid layout systems
-    - % of parent size
-    - aspect-ratio if an image
-    - Other siblings
-```
+Without CSS, all page layouts would operate on the X and Y axis, meaning everything would be placed on a single layer. However, when we apply CSS 3D transformations, absolute positioning, or any action that moves an element from the normal flow, we active an additional axies known as the **stacking context** or the Z axis. Child elements of a stack context are stacked according to the same rules that create stacking contexts (i.e. stacking contexts can be within stacking contexts).
 
-#### Type
-
-Type can be one of three values:
-
-**Block** level: including, but not restricted by `display: block` **Inline** level: `display: inline` **Anonymous** box
-
-##### Box type: block
-
--	Takes 100% of parent context's width
--	Height is equivalent to its content (intrinsic)
--	Rendered from top to bottom
--	Governed by **Block Context Formatting** (BCF)
-
-###### Calculating the width of a block element
-
-Depending on the `box-sizing` property value, the width calculation is different. When `box-sizing: content-box`, each layer of the box model needs to be calculated to get the accurate width of the element; however, `box-sizing: border-box` wraps the border, padding, and content layer into one layer.
-
-`box-sizing: content-box`: `width = margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right`
-
-`box-sizing: border-box`: `width = margin-left + content-width + margin-right`
-
-###### HTML tags that are block type boxes (not an exhaustive list):
-
-`address, article, aside, blockquote, canvas, div, figcaption, figure, footer, form, h1-h6, header, hr, li, main, nav, noscript, ol, p, pre, section, table, ul, video`
-
-##### Box type: anonymous
-
-The only example I know of are empty lines rendered in the DOM (carriage returns?)
-
-##### Box type: inline
-
--	Rendered like a string, from left to right and top to bottom
--	Governed by **Inline Formatting Context** (IFC)
--	Generate inline-level boxes
-
-###### Calculating the width of an inline element
-
--	Inline elements do not respond to `width` and `height` properties (literally, it does not affect their size)
--	Inline elements do not react to vertical margins
--	Inline elements' padding does not alter their height
-
-`width = margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right`
-
-###### HTML tags that are inline type boxes (not an exhaustive list):
-
-`a, acronym, abbr, br, button, i, img, input, object, q, small, span, strong, time, b, code, em, label, select, textarea`
-
-### Browser Formatting Context
-
-Pleaes look at pages 18-27 in the slides linked [above](#frontend-system-design).
-
-Key ideas:
-
--	**Isolation**: elements within a context are shielded from the rules of external contexts
--	**Scalability**: introducing a new ruleset for elements is as simple as creating new **Contexts** (flex-box, grid, etc.)
--	**Predictability**: with a strict rule set, the placement of elements is predictable
-
-Please look at pages 29-39 in the slides linked [above](#frontend-system-design).
-
-### Stacking context
-
-Without CSS, all page layouts would operate on the X and Y axis, meaning everything would be placed on a single layer. However, when we apply CSS 3D transformations, absolute positioning, or any action that moves an element from the normal flow, we active an additional axies known as the **stacking context** or the Z axis.
+![stacking context diagram](../images/compressed/stacking-contexts.webp)
 
 Stacking contexts are an incredible browser feature:
 
 -	**Layering**: we need a way to represent layers in our layouts
 -	**Performance optimization**:
 	-	Elements removed from the normal flow are placed into a new stacking context
+        - Only descendant elements are moved into the stacking context
 	-	Modifications to every element within a separate stacking context do not impact any other elements within the normal flow
 	-	All CSS transformations are GPU accelerated, meaning the browser doesn't need to recalculate the DOM tree when such operations are performed. This minimizes the reflow cycle, and number of reflows as we update the DOM
 
-### Browser Positioning System
+Stack contexts are created:
 
-**Normal flow**: top to bottom; right to left || left to right
+- Root element of the document (`<html>`)
+- Position of "absolute" or "relative" and `z-index !== auto`
+- Position of "fixed" or "sticky"
+- `container-type` value of "size" or "inline-size"
+- Child of a flex container and `z-index !== auto`
+- Child of a grid container and `z-index !== auto`
+- Opacity less than 1
+- `mix-blend-mode` value other than "normal"
+- Any of the following CSS properties with a value other than "none"
+    - transform
+    - scale
+    - rotate
+    - translate
+    - filter
+    - backdrop-filter
+    - perspective
+    - clip-path
+    - mask / mask-image / mask-border
+- Isolation value "isolate"
+- `will-change` value
+- `contain` value of "layout," "paint," or a composite value including either "layout" or "paint"
+- Has stacking context-creating properties animated using `@keyframes` with `animation-fill-mode` set to "forwards"
+
+## Browser Positioning System
+
+> [!INFO] Normal Flow
+> Top to bottom; right to left || left to right
 
 Certain CSS properties alter an elements positioning on the page in a way that changes the normal flow of the DOM.
 
-#### Position
+### Position
 
 Position determines a variant of an element's positioning on the page, relative to the browser window or an anchor element.
 
@@ -212,21 +324,21 @@ If positioning is used wisely, we can achieve:
 -	**Isolation**: modifications made to elements positioned in this way will not affect other elements within the normal flow (i.e. avoids reflows)
 -	**Performance optimization**: positioning plays a key role in optimizing and minimizing updates to the DOM tree
 
-##### Containing block
+#### Containing blocks
 
 A containing block is the anchor to which `top, right, bottom, left` apply to an explicitly positioned element. By default, it's the browser viewport (window); however, there are two rules that take precedent:
 
 1.	If an element has `position: relative`, its closest **block-level** ancestor element is the containing block
 2.	If an element has `position: relative`, it becomes a containing block
 
-##### Relative
+#### Relative
 
 -	Element is positioned according to the normal flow of the document
 	-	`offset` is applied relative to itself
 -	`offset` does not affect the position of any other element; this, the space allocated for the element in the page layout remains the same as if the element's position was "static"
 -	Creates a new **stacking context** when the value of `z-index` is not "auto"
 
-##### Absolute
+#### Absolute
 
 -	Element is removed from the normal document flow
 -	No space is reserved for the element in the page layout
@@ -235,15 +347,21 @@ A containing block is the anchor to which `top, right, bottom, left` apply to an
 -	This positioning creats a new **stacking context** when the z-index value is not "auto"
 	-	Review to page 47-50 of the [slides](#frontend-system-design) -
 
-### Browser graphics API: render object
+## Browser graphics API: render object
 
-DOM tree nodes are converted into `RenderObject`s so the browser can utilize GPU accelerated rendering. Render objects contain the necessary information to render in object, and nothing else.
+DOM tree nodes are converted into `RenderObject`s so the browser can utilize GPU accelerated rendering. Render objects contain the necessary information to render an object, and nothing else.
 
 However, by themselves, render objects aren't efficient ways at rendering layouts because it would require rending thousands of tiny little elements. This is where **render layers** come in.
 
-### Browser graphics API: render layer
+![render object diagram](../images/compressed/browser-graphics-api-render-objects.webp)
+
+## Browser graphics API: render layer
 
 Render layers are created according to a browser's formatting contexts and stacking contexts, and when render objects are created for individual stacking contexts, those objects are stored within the Render Layer as a linked list in stack order.
+
+![render layer diagram](../images/compressed/browser-graphics-api-render-layer.webp)
+
+<br>
 
 A **render layer** is constructed when an element:
 
@@ -256,9 +374,11 @@ A **render layer** is constructed when an element:
 -	Corresponds to a `<canvas>` element that has a 3D (WebGL) context or an accelerated 2D context
 -	Corresponds to a `<video>` element
 
-However, the GPU is at rendering thousands upon thousands of things, not hundreds, so there's another layer that comes into play to utilize render layers.
+However, the GPU is great at rendering thousands upon thousands of things, not hundreds, so there's another layer that comes into play to utilize render layers.
 
-### Browser graphics API: graphic layer
+## Browser graphics API: graphic layer
+
+![graphic layer diagram](../images/compressed/browser-graphics-api-graphic-layer.webp)
 
 A **graphic layer** is constructed when:
 
@@ -275,11 +395,13 @@ A **graphic layer** is constructed when:
 
 So, a graphic layer, or graphic layers in cases where 3D acceleration is being utilized by a render layer, will contain all the necessary information to draw the rendering layers.
 
-#### Caveats
+### Caveats
 
 Graphic layers are expensive objects to initialize because they use a lot of VRAM and CPU. Use them (3D acceleration, perspective transforms, opacity transformations, CSS filters, and composite layers) wisely.
+:::
 
-## DOM API
+::: details DOM APIs for performant manipulations
+## DOM APIs for performant manipulation
 
 ### Global objects
 
@@ -369,8 +491,11 @@ When we're using vanilla JS/TS to create HTML elements, using a DocumentFragment
 -	Reuse
 -	Isolation from the main DOM tree
 -	Utilizing HTML to create markup of components
+:::
 
-## Web APIs
+
+::: details Web APIs for complex UI patterns
+## Web APIs for complex UI patterns
 
 ### Observer API
 
@@ -544,3 +669,72 @@ I'm often used in:
 -	Drawing tools
 
 **Important note** The callback is still fired just like the "resize" event, but it's at the native level so it's utilizing more powerful and separate resources than the "resize" event. It's still a good idea to debounce your callback.
+:::
+:::details Virtualization
+## Virtualization
+
+Virtualization is a UI optimization technique for minimizing the number of DOM elements in the tree based to avoid increasing the cost of maintaining that tree and the resources the browser needs to do so. This is especially common in apps with infinite scrolling, but is pertinent to any application with an abnormally long DOM tree.
+
+Formally, virtualization is maintaining data in memory while rendering only a limited subset, referred to as a **sliding window**.
+
+There are three goals for this pattern:
+
+1.	Minimize the number of elements rendered in the DOM tree
+2.	Minimize the number of DOM mutations
+3.	Minimize CPU and memory usage required to maintain a DOM tree
+
+Here are some rough guidelines as for when to reach for visualization:
+
+-	Mobile apps that are rendering large amounts of repetitive data
+-	Repetitive, memory-intense content in a scrollable area (news feeds, twitter feed, etc.)
+-	Loading 1000+ repetitive elements
+-	Whenever s rolling begins to feel sticky
+
+Fortunately, desktop browsers have access to so much memory, virtualization is rarely a concern. In reality, avoiding the complexity is worth a lot more in most cases than the slight performance increases. Even if you need/want to fetch data in chunks, you can just append them all at once as a fragment to the DOM tree without being concerned about performance.
+
+### Design
+
+Typically, web-based Virtualization is designed with a top and bottom observer and a viewport between them. As a user scrolls down, the viewport triggers the next page of content, and on subsequent triggers via the bottom observer, the components/elements no longer visible above the current viewport are actually reused to generate the new content. By reusing already displayed elements, we're accomplishing goals 1, 2, and 3. When a user scrolls back up, the process is reversed.
+
+1.	Implement and target your top and bottom observers
+2.	Register the callback that tracks the intersection with the top and bottom observers. i. Setting up intersection observers for the top and bottom observers
+3.	Select and prepare elements for recycling
+
+### Recycling
+
+Recycling involves maintaining an array of elements in memory, called **element pool**. This pool is used to recycle elements no longer in the viewport to avoid creating unnecessary elements, which triggers additional reflows and increases the computing and maintenance cost of the DOM tree.
+
+When the user scrolls the viewport and triggers the bottom observer, we're going to slice the element pool array in half and swap places so that item 1, 2, and 3... are the last items, etc.
+
+The first step is to update how the elements are stored in memory.
+
+-	As we render the elements up until we hit our limit, store the element in our pool
+-	Once we hit our limit, slice our pool and half and swap the position of the halves
+
+Once we have hit our pool limit and started swapping the halves of our pool:
+
+-	We need to move all our items displayed from our pool into a new stacking context with `position: absolute`
+	-	This also simplifies our positioning calculations
+-	We need to calculate the new Y positions for each item
+-	We need to calcualte the new Y position for the top observer
+
+**Important note** This method does not cause any reflow, but it does create a new stacking context where we will utilize GPU acceleration to position elements via CSS translateY.
+
+#### Calculating new Y positions for each displayed item
+
+When we hit our limit of the number of elements we'll store in our element pool, we halve the pool, swap the halves positions, and then **update** the content within the elements within the half we moved to the end of the pool array.
+
+However, the new item at the beginning of the array can't rely on the previous element's Y position to calculate it's new Y position, so it is initialized to 0. Each subsequent item will use the previous item's Y position along with their height and margin to calcualte their new Y position.
+
+Once we have an element's new Y position, we can use CSS transormations (`translateY`) to move it to the right place, and since it's within it's own stacking context, it won't affect the normal flow!
+
+Finally, we need to move the top observer.
+
+The top observer's top position will be the "first" element's Y position. The bottom observer's Y position will be the last pool element's Y position + its height and margin.
+
+**Note** I'm not convinced the observers need to move because if you're always initializing the "first" pool element's Y position to 0, the top observer SHOULD always be in a good spot (where it was initialized).
+
+I was right. Moving the top observer just creates a ton of white space above the top observer as the elements keep moving further and further down the page.
+
+When we execute recycling, we must update our start and end pointers.
+:::

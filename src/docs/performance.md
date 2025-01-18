@@ -1,3 +1,9 @@
+---
+prev:
+    text: Networking
+    link: /docs/networking
+---
+
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
 
 <script setup>
@@ -7,6 +13,17 @@ import DocHeading from "../../components/doc-heading.vue"
 # Web application performance
 
 <DocHeading />
+
+[[toc]]
+
+<hr>
+
+In this module, we'll cover:
+
+- Web Vitals
+- Network performance
+- JavaScript optimizations
+- CSS optimizations
 
 ## Web Vitals
 
@@ -69,7 +86,7 @@ import DocHeading from "../../components/doc-heading.vue"
 
 ![network optimizations](../images/network-optimizations-overview.png)
 
-### Communication protocol
+### Choosing the right protocol
 
 Server protocal usage today:
 
@@ -123,7 +140,15 @@ HTTP/2+ provides 98% header compression.
 | HTTP/1.1 | 5kb |
 | HTTP/2 | 12.5 bytes |
 
-### JavaScript bundle optimization
+#### Benefits of SSE
+
+[TBD]
+
+## JavaScript optimizations
+
+There is one basic rule to always follow:
+
+**Do not block the UI thread**
 
 Core JS, the core of JavaScript's source code, is **243.9kb** minified, and **74.1kb** minified + gzipped.
 
@@ -133,18 +158,33 @@ Guess the bundle size: `"FrontendMasters".matchAll(/Frontend/)`
 |--|--|--|
 | `String.prototype.matchAll` | 16.9kb | 69b |
 
-#### Overview of the performance gains by utilizing the below optimizations
+Other optimizations include:
+
+1. Reduce CPU usage
+    1. Minimize access and search cost by utilizing Normalization of your data structures (2NF)
+2. Reduce RAM usage
+    1. Minimize running state by utilizing the Web Storage API and IndexedDB to offload state from the memory to the hard drive
+3. Avoid high frequency read-write to synchronous storages, such as local and session storage
+4. Utilize asynchronous jobs
+    1. Server
+    2. Web workers
+5. Defer script loading and execution
+6. Utilizing `DocumentFragment` for appending multiple items to the dom without causing O(N) reflows
+
+![javascript optimizations](../images/javascript-optimizations-overview.png)
+
+### Overview of the performance gains by utilizing the below optimizations
 
 There are four techniques we can use to optimizing our JavaScript bundles and improve page load performance. In order of implementation:
 
 1. Code splitting
-2. Prefetching
-3. Minification and compression
+2. Minification and compression
+3. Prefetching
 4. Deferring execution
 
 ![Flow diagram of how we can optimize JavaScript bundles](../images/javascript-bundle-optimizations.png)
 
-#### Polyfills... do you actually need them?
+### Polyfills... do you actually need them?
 
 - ES6 (2016) has support of 98.2% of browsers
     - constants
@@ -191,11 +231,11 @@ There are four techniques we can use to optimizing our JavaScript bundles and im
     - Numeric separators
     - `Promise.any`
 
-##### Multi-bundle approach
+#### Multi-bundle approach
 
 Process of compiling JavaScript into multiple bundles and enabling the server to serve the bundle most optimized based on the `user-agent`.
 
-#### Code split
+### Code splitting
 
 Process of importing modules only when needed.
 
@@ -210,16 +250,16 @@ cta.addEventListener("click", async () => {
 })
 ```
 
-##### Code pre-fetch
+#### Code pre-fetch
 
 Browsers provide the ability to link to resources we want to preload in the background.
 
 `<link rel="preload" href="./module1.js">` --> preloads a resource in the background with a high priority
 `<link rel="prefetch" href="./module2.js">` --> preloads and caches a resource in the background with a low priority
 
-#### Code minification and compression
+### Code minification and compression
 
-##### Minification
+#### Minification
 
 Process of simplify code syntax to remove unnecessary characters and shorten text to create smaller file sizes:
 
@@ -234,7 +274,7 @@ function Sum() {
 function s(){return 2+2}
 ```
 
-##### Compression
+#### Compression
 
 There are two compression options, but older browsers may limit the use of **brotli** over **gzip**.
 
@@ -249,33 +289,42 @@ There are two compression options, but older browsers may limit the use of **bro
 
 **Gzip** is much faster and supported by most browsers.
 
-#### Deferred load
+### Prefetching
+
+[TBD]
+
+### Defer script loading and execution
 
 Deferred loading is the ability to asynchronously load javascript in the background and defer execution until the browser has finished parsing the DOM.
 
 **Note**
 `async` scripts execute once fully downloaded, regardless of whether the browser has finished parsing the DOM.
 
-### CSS Bundle optimization
+### Utilizing `DocumentFragment`
 
-There are four bundle optimizations we can utilize:
+[TBD]
+
+## CSS optimizations
+
+There are six optimizations we can utilize:
 
 1. Split the bundle when necessary
 2. Minify and compress
 3. Inline critical styles
 4. Preload/prefetch non-critical styles in the background
+5. Utilizing stacking contexts to minimize DOM
 
-#### Code splitting
+### Code splitting
 
 Same as with JavaScript modules. This is largely handled by JavaScript build tools, such as Webpack or Vite, but we should stil write our CSS within small modules.
 
-#### Minification and compression
+### Minification and compression
 
 | Uncompressed | Minified | Gzip | Brotli |
 | ------------- |--|--|--|
 | 2413.4kb | 1967.4kb | 190.2kb | 46.2kb |
 
-#### Critical style extraction
+### Critical style extraction
 
 There are two types of styles within an app:
 
@@ -311,125 +360,10 @@ Typically, this takes the form of:
 </html>
 ```
 
-### Image assets optimization
+### Preloading/fetching non-critical styles
 
-When using images, it's very, very important to use the correct format for the intended use of the asset:
+[TBD]
 
-| Asset intention | Worst case | Middle case | Optimized |
-| --------------- | --------------- | --------------- | --------------- |
-| Animated content | GIF | MP4 | N/A |  
-| Icon and logos | JPEG/PNG | SVG | Compressed SVG |
-| Raster graphic | N/A | PNG | WEBP |
-| Photos | JPEG | WEBP | AVIF |
+### Stacking contexts
 
-**Summary**
-
-1. Use compressed images
-2. Use optimized formats
-3. Use SVG path compression
-
-#### Webp
-
-webp was designed to replace png, jpg, and gif for usage on web pages.
-
-Current supported by every desktop and mobile browser except IE.
-
-#### AVIF
-
-AVIF is a new image encoding format with the same benefits as webp with even better compression and picture quality.
-
-Currently supported by every desktop and mobile browser except IE, Opera Mini, and QQ Browser; however, it's a new baseline feature as of 2024, so it requires up-to-date browsers.
-
-**I would encourage utilizing this format but using srcsets or fallbacks utilizing webp**
-
-#### SVG path compression
-
-This results in a file size compression from 0.7kb to 0.2kb!
-
-```html
-<!-- Typical SVG Structure (human readable) -->
-<svg width="600" height="120" fill="none">
-    <rect x="10" y="10" width="100"
-        height="100" stroke-width="3"
-        stroke="#ff6666">
-    </rect>
-    <rect x="130" y="10"
-        width="100" height="100"
-        stroke-width="3" stroke="#ff6666">
-    </rect>
-    <ellipse cx="300" cy="60"
-        rx="50" ry="50"
-        stroke-width="3" stroke="#66b2ff">
-    </ellipse>
-    <rect x="370" y="10"
-        width="100" height="100"
-        stroke-width="3" stroke="#ff6666">
-    </rect>
-    <rect x="490" y="10"
-        width="100" height="100"
-        stroke-width="3" stroke="#ff6666">
-    </rect>
-</svg>
-
-<!-- Compressed SVG -->
-<svg width="600" height="120" fill="none" stroke-width="3">
-    <path d="M10 10h100v100H10zm120 0h100v100H130z" stroke="#f66"></path>
-    <circle cx="300" cy="60" r="50" stroke="#66b2ff"></circle>
-    <path d="M370 10h100v100H370zm120 0h100v100H490z" stroke="#f66"></path>
-</svg>
-```
-
-### Font loading optimization
-
-There's not many options to optimize font loading besides:
-
-1. Don't download fonts you don't need (weights === separate fonts)
-2. Allow the browser to display content while custom fonts are downloading
-
-#### Displaying content while fonts are downloading
-
-- Browser waits for 3s to load
-
-```css
-@font-face {
-    src="...";
-    font-display: "auto";
-}
-```
-
-- Render unstyled text immediately; switch if font is loaded within 3s
-
-```css
-@font-face {
-    src="...";
-    font-display: "fallback";
-}
-```
-
-- Render unstyled text immediately; switch only on refresh if font is downloaded
-
-```css
-@font-face {
-    src="...";
-    font-display: "optional";
-}
-```
-
-## JavaScript optimizations
-
-There is one basic rule to always follow:
-
-**Do not block the UI thread**
-
-Other optimizations include:
-
-1. Reduce CPU usage
-    1. Minimize access and search cost by utilizing Normalization of your data structures (2NF)
-2. Reduce RAM usage
-    1. Minimize running state by utilizing the Web Storage API and IndexedDB to offload state from the memory to the hard drive
-3. Avoid high frequency read-write to synchronous storages, such as local and session storage
-4. Utilize asynchronous jobs
-    1. Server
-    2. Web workers
-
-![javascript optimizations](../images/javascript-optimizations-overview.png)
+[TBD]

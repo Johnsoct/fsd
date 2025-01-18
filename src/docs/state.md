@@ -1,12 +1,29 @@
+---
+next:
+    text: APIs 
+    link: /docs/apis
+prev:
+    text: Fundamentals
+    link: /docs/fundamentals
+---
+
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD030 MD033 -->
 
 <script setup>
 import DocHeading from "../../components/doc-heading.vue"
 </script>
 
-# Application state design
+# Application State
 
-<DocHeading />
+[[toc]]
+
+<hr>
+
+In this module, we'll cover:
+
+-	Search / access optimization
+-	Intentional use of specific browser storage APIs
+-	Memory offloading
 
 ## Two types of frontend application state
 

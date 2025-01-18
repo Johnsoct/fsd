@@ -5,18 +5,29 @@ export default defineConfig({
     base: "/fsd/",
     cleanUrls: true,
     description: "Frontend system design documentation",
+    markdown: {
+        image: {
+            lazyLoading: true,
+        },
+    },
     srcDir: "src",
     title: "FSD",
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
+        logo: {
+            alt: "Frontend System Design's logo",
+            src: "/logo.webp",
+        },
+
         nav: [
             //{ text: 'Home', link: '/' },
             { text: 'Introduction to FSD', link: '/docs/intro' },
-            { text: 'Application State', link: '/docs/application-state' },
             { text: 'Fundamentals', link: '/docs/fundamentals' },
-            { text: 'Networking', link: '/docs/networking' },
-            { text: 'Virtualization', link: '/docs/virtualization' },
-            { text: 'Performance', link: '/docs/web-app-performance' },
+            { text: 'State', link: '/docs/state' },
+            { text: 'APIs', link: '/docs/apis' },
+            { text: 'UI Interactions', link: '/docs/ui-interactions' },
+            { text: 'Asset Management', link: '/docs/assets' },
+            { text: 'Performance', link: '/docs/performance' },
         ],
 
         socialLinks: [
