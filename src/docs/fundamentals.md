@@ -10,7 +10,7 @@ prev:
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 -->
 
 <script setup>
-import DocHeading from "../../components/doc-heading.vue"
+import DocHeading from "../components/doc-heading.vue"
 </script>
 
 # Important fundamentals
@@ -30,11 +30,11 @@ In this module, we'll cover:
 
 <hr>
 
-::: details How browser rendering really works {open}
+::: details How browser rendering really works
 <!--@include: ./browser-rendering.md-->
 :::
 
-::: details DOM APIs for performant manipulations
+::: details DOM APIs for performant manipulations {open}
 <!--@include: ./dom-apis.md-->
 :::
 

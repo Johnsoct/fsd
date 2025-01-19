@@ -1,14 +1,16 @@
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 -->
+### Global browser objects
 
-## DOM APIs for performant manipulation
+The global browser objects we're covering in this document are all classes extending the `window` object.
 
-### Global objects
+- window: `window`
+- document: `window.document` || `document`
+- body: `window.document.body` || `document.body`
+- head: `window.document.head` || `document.head`
 
-window -> document -> body & head
+#### Hierarchy
 
-`window` `window.document` or `document` `window.document.body` or `document.body` `window.document.head` or `document.head`
-
-### Class hierarchy
+When manipulating the dom, we will typically be dealing with objects of the type "HTMLElement." "HTMLElement" is typically extended to represent the individual HTML elements, such as "HTMLLIElement" or "HTMLButtonElement."
 
 At the very bottom of the list, we have `HTMLElement`, which extends:
 
@@ -30,7 +32,7 @@ The DOM API provides a variety of methods for querying for HTML elements in the 
 -	`querySelector`
 -	`querySelectorAll`
 
-#### `getElemenyById`
+#### `getElementById`
 
 Because the browser stores all the elements in a Hashmap, querying by ID is a O(1) time complexity search (instanenous-ish) because it simply is query a map with a specific ID.
 
