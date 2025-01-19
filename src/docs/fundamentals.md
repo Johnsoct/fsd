@@ -34,7 +34,7 @@ In this module, we'll cover:
 <!--@include: ./browser-rendering.md-->
 :::
 
-::: details DOM APIs for performant manipulations {open}
+::: details DOM APIs for performant manipulations
 <!--@include: ./dom-apis.md-->
 :::
 
@@ -42,6 +42,6 @@ In this module, we'll cover:
 <!--@include: ./web-apis.md-->
 :::
 
-:::details Virtualization
+:::details Virtualization {open}
 <!--@include: ./virtualization.md-->
 :::

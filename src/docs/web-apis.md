@@ -1,26 +1,26 @@
-<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 -->
-## Web APIs for complex UI patterns
-
-### Observer API
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD030 MD033 MD041 -->
+## Observer API
 
 The observer API exists to replace that ole', slow, pain in the ass function, `element.getBoundingClientRect()`. Remember that one?
+
+The problem with `getBoundingClientRect()` was it ran on the main thread and listened to the `resize` event. The Observer API is callback-based, and only fires on when a target element's dimensions cross certain thresholds or the intersection between it and another element changes by a specified amount.
 
 Unlike most APIs, the observer operates at the native level instead of the event level, which means it has access to many more and separate resources than most browser or web APIs. On average, the observer API is 50x faster than a vanilla implementation of `getBoundingClientRect`.
 
 The observer API has three different parts:
 
-1.	Intersection (intersection of a root and target element)
+1.	Intersection
 2.	Mutation
 3.	Resize
 
-#### Intersection
+### Intersection
 
 The intersection observer watches a target element and triggers a callback when it comes in contact with a root element.
 
-The intersection observer requires two things:
+The intersection observer accepts two arguments:
 
 -	callback: fn to execute on intersection
--	options
+-	options (optional)
 	-	root: the "window" we check the intersection against or the browser viewport if undefined
 	-	rootMargin: margin around the root
 	-	threshold: minimal intersection ratio required to trigger the callback
@@ -42,14 +42,17 @@ const target = document.querySelector(".class")
 observer.observe(target)
 ```
 
+<br>
+
 I'm often used in:
 
 -	Virtualization
--	LAzy components
+-	Lazy components
 -	Analytics
+-   Ad placement calculations
 -	Dynamic UI elements
 
-#### Mutation
+### Mutation
 
 The mutation observer enables us to monitor changes in the DOM tree.
 
@@ -75,11 +78,11 @@ When a callback is triggered, the mutation observer returns a `MutationRecord`:
 
 ```ts
 type MutationRecord = {
-    type: "attributes" | "characterData" | "childList";
-    target: Node;
     addedNodes: NodeList;
-    removedNodes: NodeList;
     oldValue?: string;
+    removedNodes: NodeList;
+    target: Node;
+    type: "attributes" | "characterData" | "childList";
 }
 
 function callback (mutations) {
@@ -92,14 +95,17 @@ function callback (mutations) {
 }
 ```
 
+<br>
+
 I'm often used in:
 
 -	Rich text editors
 -	Drawing tools
 
-**Important Note** It's possible to cause infinite recursion by watching for mutations of an element that we're editing because the edit will cause a mutation on the edit, and on and on and on. It's best to update the element and then append it to the page, instead of appending it to the page and then updating it (which is also causing additional reflows).
+> [!IMPORTANT]
+> It's possible to cause infinite recursion by watching for mutations of an element that we're editing because the edit will cause a mutation on the edit, and on and on and on. It's best to update the element and then append it to the page, instead of appending it to the page and then updating it (which is also causing additional reflows).
 
-#### Resize
+### Resize
 
 The resize observer is used to watch for when a target element resizes.
 
@@ -115,11 +121,15 @@ On an element:
 1.	CSS container query
 2.	Resize observer
 
+#### How to choose a method
+
 However, the "resize" event is notariously the most greedy event to listen to because it fires on every single pixel change which hogs the CPU thread, and it can only be attached to the window. Don't use this.
 
 CSS media and container queries are GREAT, but only if you don't need to execute JS/TS.
 
 The resize observer is, on average, 10x faster than resize and can be attached to an element and execute JS/TS... When combined with CSS media queries, you can create very adaptive layouts.
+
+#### Resize
 
 During instantiation, it takes a single argument:
 
@@ -132,33 +142,35 @@ The callback accepts two arguments:
 
 ```ts
 type ResizeObserverEntry {
-borderBoxSize: {
-    blockSize: number,
-    inlineSize: number,
-}[];
-contentBoxSize: {
-    blockSize: number,
-    inlineSize: number,
-}[];
-devicePixelContentBoxSize: {
-    blockSize: number,
-    inlineSize: number,
-}[];
-contentRect: DOMRectReadOnly;
-target: Element | SVGElement;
+    borderBoxSize: {
+        blockSize: number,
+        inlineSize: number,
+    }[];
+    contentBoxSize: {
+        blockSize: number,
+        inlineSize: number,
+    }[];
+    contentRect: DOMRectReadOnly;
+    devicePixelContentBoxSize: {
+        blockSize: number,
+        inlineSize: number,
+    }[];
+    target: Element | SVGElement;
 }
 
 const callback = (entries) => {
-for (const entry of entries) {
-    const [width, height] = [
-        entry.borderBoxSize[0].inlineSize,
-        entry.borderBoxSize[0].blockSize
-    ]
+    for (const entry of entries) {
+        const [width, height] = [
+            entry.borderBoxSize[0].inlineSize,
+            entry.borderBoxSize[0].blockSize
+        ]
 
-    // your logic here
-}
+        // your logic here
+    }
 }
 ```
+
+<br>
 
 When calling `.observe()`, it takes two arguments:
 
@@ -172,4 +184,5 @@ I'm often used in:
 -	Charting tools
 -	Drawing tools
 
-**Important note** The callback is still fired just like the "resize" event, but it's at the native level so it's utilizing more powerful and separate resources than the "resize" event. It's still a good idea to debounce your callback.
+> [!IMPORTANT]
+> The callback is still fired just like the "resize" event, but it's at the native level so it's utilizing more powerful and separate resources than the "resize" event (not the main browser thread). It's still a good idea to debounce your callback.
