@@ -7,7 +7,7 @@ prev:
     link: /docs/fundamentals
 ---
 
-<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD030 MD033 -->
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD030 MD033 MD041 -->
 
 <script setup>
 import DocHeading from "../components/doc-heading.vue"
@@ -15,17 +15,23 @@ import DocHeading from "../components/doc-heading.vue"
 
 # Application State
 
-[[toc]]
-
-<hr>
+<DocHeading />
 
 In this module, we'll cover:
 
--	Search / access optimization
--	Intentional use of specific browser storage APIs
--	Memory offloading
+- Minimizing the cost of reading state
+- Minimizing the cost of searching state
 
-## Two types of frontend application state
+## Summary
+
+1. Know your scale - optimize accordingly
+2. Always start with how you structure your data
+3. Use normal forms to optimize access cost
+4. Use indexes if in-app search is required
+5. Offload data to hard-drive when it's needed (IndexDB, browser storage)
+6. Pick a suitable storage
+
+## Frontend application state
 
 1.	Data classes
 2.	Data properties
@@ -61,7 +67,7 @@ Data properties are more abstract values to consider when structuring your state
 -	Read/write frequency
 -	Size
 
-## General guidelines for approaching state design 
+## General guidelines for approaching state design
 
 In order of importance, we want to design our state to:
 
@@ -71,15 +77,15 @@ In order of importance, we want to design our state to:
 
 ### Minimizing access cost to state
 
-**Normalization** is the process of constructing data structures in a way that achieves the following goals:
+> [!INFO] Normalization
+> The process of constructing data structures in a way that achieves the following goals:
+>
+> 1.	Optimize access performance
+> 2.	Optimize storage structures
+> 3.	Increase developer readability and maintainability
 
-1.	Optimize access performance
-2.	Optimize storage structures
-3.	Increase developer readability and maintainability
-
-**Important note**:
-
-It is impossible to avoid time complexities greater than O(1), but the goal is to reduce those cases as much as possible.
+> [!IMPORTANT]
+> It is impossible to avoid time complexities greater than O(1), but the goal is to reduce those cases as much as possible.
 
 #### The problem normalization prevents
 
@@ -116,11 +122,23 @@ type User {
 The problem with this is the access cost of values like "conversations," or worse, "messages" in "conversations," because the time complexity becomes:
 
 -	Access cost of GET'ing a specific conversation - O(N)
--	Access cost of GET'ing a specific message - O(N) + O(N^2) = quadratic
+-	Access cost of GET'ing a specific message - O(N) * O(N) = O(N^2)
 
 ##### Explanation
 
 You're filtering conversations for the right conversation and then filtering messages for the right message. Although it's logically simple, it's very innefficient.
+
+```ts
+const message = user.conversations.forEach((conversation) => {
+    if (conversation.contact === "Tom") {
+        conversation.messages.forEach((message) => {
+            if (message.message.includes("Hey, asshole! I know you slept with my wife!")) {
+                return conversation
+            }
+        })
+    })
+})
+```
 
 #### Normalization implementation
 
@@ -131,23 +149,23 @@ Review page 192 of the [Slides](https://static.frontendmasters.com/resources/202
 There are seven different "forms" or levels to normalization, but for the frontend, we're only concerned about the first two:
 
 1.	(1NF) Data is atomic && it has a primary key
-    1. i.e. A property of an object should not be a complex data type
+    1. i.e. A property value of an object should not be a complex data type
 2.	(2NF) 1NF + non-primary keys depend on their respective entity's primary key
 
 ```ts
 // (Non-NF)
 type User = {
+    country: {
+        code: string
+        name: string
+    }
     id: string
-    name: string
     job: {
         id: string
         title: string
         department: string
     }
-    location: {
-        code: string
-        name: string
-    }
+    name: string
 }
 
 // (1NF)
@@ -170,6 +188,7 @@ type User = {
     }
 }
 
+// With the ID of a user, Job is instant access because it can be accessed by key
 type Job = {
     [id: string]: {
         title: string
@@ -177,6 +196,7 @@ type Job = {
     }
 }
 
+// With the ID of a user, Country is instant access because it can be accessed by key
 type Country = {
     [id: string]: {
         country_code: string
@@ -192,24 +212,34 @@ const users: User = {
     }
 }
 
-const jobs: { [k: string]: string } = {
-    "UIE": "UI Engineer",
+const jobs: Job = {
+    "UIE": {
+        department: "Engineering",
+        title: "UI Engineer",
+    },
 }
 
-const department: { [k: string]: string } = {
-    "UIE": "Engineering",
+const countries: Country = {
+    "US": {
+        country_code: "US",
+        country_name: "United States",
+    },
 }
 
+// Utilizing a combination of a user key and job key, we can create a map to quickly find 
+// the jobs of known users
 const user_jobs: { [k: string]: string } = {
     "1": "UIE",
 }
 
-const countries: { [k: string]: string } = {
-    "US": "United States",
+// Utilizing a combination of a user key and country key, we can create a map to quickly find 
+// the countries of known users
+const user_countries: { [k: string]: string } = {
+    "1": "US",
 }
 ```
 
-This allows us to use an O(1) time complexity (almost instant) to access any data directly with the key. We do not need to filter or loop over values within an entity.
+This allows us to use an O(1) time complexity (almost instant) to access any data directly with an object key. We do not need to filter or loop over values within an entity once we have a user ID.
 
 #### Browser storage options
 
@@ -221,6 +251,11 @@ This allows us to use an O(1) time complexity (almost instant) to access any dat
 | Data types | number, date, string, binary, array | string | string |
 | Blocking thread | No | Yes | Yes |
 | Asynchronous | Yes | No | No |
+
+> [!INFO] IndexedDB API
+> A low-level API for client-side storage of significant amounts of structured (normalized) data, including files or blobs. This API uses indexes to enabled high-performant searches.
+>
+> IndexedDB is a transactional database system, like a SQL-based relational database management system (RDBMS); however, unlike SQL-based RDBMSes with fixed-column tables, IndexedDB is a POJO database, which lets you store and retrieve objects indexed with a key.
 
 ### Minimizing search cost (ex. Facebook Messenger)
 
@@ -250,13 +285,12 @@ const message = {
 }
 ```
 
-Now, instead of searching through each message's content property, we can store the content, and every composite of the content, as a key which allows us index access to messages. The value of a message will be tuple representing the message id and timestamp.
+Now, instead of searching through each message's content property, we can store the content, and every composite of the content, as a key which allows us index access to messages. The value of a message will be a tuple representing the message id and timestamp.
 
-## Summary
+### Minimize RAM usage
 
-1. Know your scale - optimize accordingly
-2. Always start with how you structure your data
-3. Use normal forms to optimize access cost
-4. Use indexes if in-app search is required
-5. Offload data to hard-drive when it's needed (IndexDB, browser storage)
-6. Pick a suitable storage
+Browser storage APIs, including IndexedDB, allow us to offload data stored in memory (variables) to a user's hard drive (metaphorically, through the browser).
+
+Normally, this probably isn't a big concern; however, if performance is important to your business model (or you have a large number of mobile device users), then it's important to utilize these APIs to offset your state into a more resource-abundant storage solution.
+
+If you need frequent access to this data, then the IndexedDB is a great option. If you only need occassional access, local or session storage are better options.

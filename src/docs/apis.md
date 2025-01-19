@@ -17,10 +17,6 @@ import DocHeading from "../components/doc-heading.vue"
 
 <DocHeading />
 
-[[toc]]
-
-<hr>
-
 In this module, we'll cover:
 
 -	Intro to browser networking
