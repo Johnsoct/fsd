@@ -1,5 +1,4 @@
-## Mobile devices
-
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 ### Networking modules
 
 Mobile devices have two types of networking modules:

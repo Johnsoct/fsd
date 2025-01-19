@@ -7,7 +7,7 @@ prev:
     link: /docs/state
 ---
 
-<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 -->
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 
 <script setup>
 import DocHeading from "../components/doc-heading.vue"

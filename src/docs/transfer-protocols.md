@@ -1,5 +1,4 @@
-## Introduction to transport protocols (UDP, TCP)
-
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 > [!INFO] UDP
 > **User datagram protocol**
 >
@@ -26,4 +25,3 @@
 ### Choosing the right protocol
 
 Read [networking performance optimizations](./performance#choosing-the-right-protocol) to help choose between HTTP/1.1, HTTP/2, HTTP/3, SSE, web sockets, webRTC, and QUIK.
-

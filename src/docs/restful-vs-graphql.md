@@ -1,5 +1,4 @@
-## RESTful vs GraphQL APIs
-
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 ### GraphQL
 
 When properly configured and well supported, it provides a seamless, intuitive developer experience.

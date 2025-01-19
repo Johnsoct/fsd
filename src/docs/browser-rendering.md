@@ -3,6 +3,15 @@ The browser has a few systems that are directly affected by our HTML, CSS, and J
 
 First and foremost, we need to understand how the browser calculates an elements position, and that's by use of the "box model," which is used by the browser to calculate the dimensions of an element and where it fits into the browser formatting context(s), which we'll also cover below.
 
+## Process of serving a web page
+
+1. Client requests HTML page
+2. Server responds with the request page
+3. Browser starts to render the web page and sequentially load every resource
+4. Browser pauses rendering to execute asynchronous scripts once they're done loading
+5. Page is rendered only when critical resources on the HTML page are fully loaded
+6. After rendering is complete, browser will start executing additional requests mae by deferred scripts
+
 ## Box Model
 
 4 Layers (innermost to outtermost):

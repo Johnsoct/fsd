@@ -1,5 +1,4 @@
-## Talking to servers via short/long-polling, web-sockets, and SSE
-
+<!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 Examples of use cases for different methods of communication with a server
 
 | Request | Mobile | Desktop | function |
