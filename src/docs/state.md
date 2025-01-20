@@ -9,13 +9,7 @@ prev:
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD030 MD033 MD041 -->
 
-<script setup>
-import DocHeading from "../components/doc-heading.vue"
-</script>
-
 # Application State
-
-<DocHeading />
 
 In this module, we'll cover:
 

@@ -1,18 +1,12 @@
 ---
 prev:
-    text: Networking
-    link: /docs/networking
+    text: Asset Management 
+    link: /docs/assets
 ---
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 
-<script setup>
-import DocHeading from "../components/doc-heading.vue"
-</script>
-
 # Web application performance
-
-<DocHeading />
 
 In this module, we'll cover:
 
@@ -29,7 +23,7 @@ In this module, we'll cover:
 <!--@include: ./network-optimizations.md-->
 :::
 
-::: details JavaScript optimizations {open}
+::: details JavaScript optimizations
 <!--@include: ./javascript-optimizations.md-->
 :::
 

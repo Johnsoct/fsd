@@ -9,13 +9,7 @@ prev:
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 -->
 
-<script setup>
-import DocHeading from "../components/doc-heading.vue"
-</script>
-
 # Important fundamentals
-
-<DocHeading />
 
 In this module, we'll cover:
 
@@ -42,6 +36,6 @@ In this module, we'll cover:
 <!--@include: ./web-apis.md-->
 :::
 
-:::details Virtualization {open}
+:::details Virtualization
 <!--@include: ./virtualization.md-->
 :::

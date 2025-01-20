@@ -6,18 +6,7 @@ next:
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD033 MD041 -->
 
-<script setup>
-import DocHeading from "../components/doc-heading.vue"
-</script>
-
-<!-- TODO: add header too all doc files with slide and relevant page numbers -->
 # Frontend system design
-
-<DocHeading />
-
-[[toc]]
-
-<hr>
 
 ## Every application has at least three parts
 

@@ -13,11 +13,14 @@ export default defineConfig({
     srcDir: "src",
     title: "FSD",
     themeConfig: {
-        // https://vitepress.dev/reference/default-theme-config
+        aside: false,
+
         logo: {
             alt: "Frontend System Design's logo",
             src: "/logo.webp",
         },
+
+        outline: false,
 
         nav: [
             //{ text: 'Home', link: '/' },
@@ -28,6 +31,7 @@ export default defineConfig({
             { text: 'UI Interactions', link: '/docs/ui-interactions' },
             { text: 'Asset Management', link: '/docs/assets' },
             { text: 'Performance', link: '/docs/performance' },
+            { text: 'Resources', link: '/docs/resources' },
         ],
 
         socialLinks: [
