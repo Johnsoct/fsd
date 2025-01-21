@@ -1,14 +1,11 @@
 const template = document.createElement('template')
 
 template.innerHTML = `
-    <style>
-    </style>
-
-    <div class="Message">
+    <li class="Message">
         <div class="Message__avatar"></div>
         <label class="Message__author"></label>
         <p class="Message__content"></p>
-    </div>
+    </li>
 `
 
 export default template

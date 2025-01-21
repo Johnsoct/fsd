@@ -114,7 +114,7 @@ export default class MockDB {
     getMessages(limit = 10, offset = 0) {
         return new Promise((res) => {
             setTimeout(() => {
-                res(conversation.slice(offset, limit))
+                res(conversation.slice(offset, offset + limit))
             }, 500)
         })
     }

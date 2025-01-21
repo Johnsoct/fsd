@@ -5,7 +5,7 @@ head: [
         {
             defer: true,
             type: "module",
-            src: "../utils/fullVirtualization.js",
+            src: "../utils/fullVirtualization",
         },
     ]
 ]
@@ -20,6 +20,7 @@ head: [
     display: flex;
     justify-content: center;
     padding: 1rem 0;
+    position: absolute;
     width: 100%;
 }
 
@@ -29,6 +30,7 @@ head: [
     display: flex;
     justify-content: center;
     padding: 1rem 0;
+    position: absolute;
     width: 100%;
 }
 
@@ -74,13 +76,17 @@ ul.Conversation__messages {
     padding: 0;
 }
 
-.Conversation__textarea {
+.Conversation__input {
+    background-color: lightgrey;
+    color: black;
     flex-grow: 1;
     height: 40px;
     margin-right: 1rem;
+    padding: 0.5rem;
 }
 
-.Conversation__textarea::placeholder {
+.Conversation__input::placeholder {
+    color: black;
     margin-left: 1rem;
 }
 
@@ -89,6 +95,7 @@ ul.Conversation__messages {
     height: 400px;
     margin: 1rem 0;
     overflow-y: auto;
+    /* Creates a new stacking context */
     position: relative;
 }
 
@@ -136,15 +143,14 @@ ul.Conversation__messages {
         </div>
         <ul class="Conversation__messages"></ul>
         <div class="BottomObserver">
-            <label>Top Observer</label>
+            <label>Bottom Observer</label>
         </div>
     </div>
     <div class="Conversation__inputs">
-        <textarea
-            class="Conversation__textarea"
-            cols="1"
+        <input
+            class="Conversation__input"
             placeholder="Send a message..."
-            rows="1"
+            type="text"
         />
         <button class="Conversation__button">📨</button>
     </div>
