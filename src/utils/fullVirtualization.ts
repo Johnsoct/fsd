@@ -15,14 +15,13 @@ let _page = 1
 
 function createMessageEl(message) {
     const template = MessageTemplate.content.cloneNode(true)
+    console.log(template)
+    console.log(MessageTemplate.content)
     const messageEl = template.querySelector(".Message__content")
     const personEl = template.querySelector(".Message__author")
 
     messageEl.textContent = message.message
     personEl.textContent = message.speaker
-    console.log(MessageTemplate.content)
-
-    console.log(template)
 
     return template
 }
@@ -52,15 +51,18 @@ function getMessages(limit = _limit, page): Promise<void> {
 
             _page = page || 1
 
-            console.dir(data, elementPool, _page)
+            // console.dir(data, elementPool, _page)
         })
 }
 
 // Initialization
+// BUG: intersection observers firing on load
+// TODO: intersection observers should observe current first and last elements
 DB
     .initDB()
     .then(() => {
         getMessages(_limit, _page).then(() => {
+            // console.log(elementPool)
             // Intersection Observers
             const backwardCallback = (entries: IntersectionObserverEntry, observer: IntersectionObserver) => {
                 getMessages(_limit, _page - 1)
@@ -75,9 +77,13 @@ DB
 
             const bottomIntersectionObserver = new IntersectionObserver(forwardCallback, options)
             const topIntersectionObserver = new IntersectionObserver(backwardCallback, options)
+            const firstEl = elementPool[getOffset(_limit, _page)]
+            const lastEl = elementPool[elementPool.length - 1]
 
-            bottomIntersectionObserver.observe(bottomObserver)
-            topIntersectionObserver.observe(topObserver)
+            // console.dir(firstEl, lastEl)
+
+            bottomIntersectionObserver.observe(lastEl)
+            topIntersectionObserver.observe(firstEl)
         })
     })
 

@@ -138,13 +138,13 @@ ul.Conversation__messages {
         <label class="Conversation__contact">Person B</label>
     </div>
     <div class="Conversation__viewport">
-        <div class="TopObserver">
-            <label>Top Observer</label>
-        </div>
+        <!-- <div class="TopObserver"> -->
+        <!--     <label>Top Observer</label> -->
+        <!-- </div> -->
         <ul class="Conversation__messages"></ul>
-        <div class="BottomObserver">
-            <label>Bottom Observer</label>
-        </div>
+        <!-- <div class="BottomObserver"> -->
+        <!--     <label>Bottom Observer</label> -->
+        <!-- </div> -->
     </div>
     <div class="Conversation__inputs">
         <input
