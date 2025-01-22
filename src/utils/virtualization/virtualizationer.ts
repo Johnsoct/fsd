@@ -38,33 +38,14 @@ export default class Virtualizationer {
         return element
     }
 
-
-    // #handleIntersection() {
-    //     return (entries) => {
-    //         for (const entry of entries) {
-    //             if (entry.isIntersecting) {
-    //                 const id = entry.target.id;
-    //                 if (id === 'top-observer' && this.start > 0) {
-    //                     void this.#handleTopObserver();
-    //                 } else if (id === 'bottom-observer') {
-    //                     void this.#handleBottomObserver();
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     private backwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
             console.log("backward", entry)
             if (entry.isIntersecting) {
-                if (this._page === 1) {
-                    return
-                }
-
                 if (this._page > 1) {
                     this._page--
+                    this.getData(this.props.nodeLimit, this._page)
                 }
-                this.getData(this.props.nodeLimit, this._page)
             }
         })
     }
@@ -77,13 +58,10 @@ export default class Virtualizationer {
     private forwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
             console.log("forward", entry)
-            if (entry.isIntersecting) {
-                if (this._page === 1) {
-                    return
-                }
 
-                this._page = this._page + 1
+            if (entry.isIntersecting) {
                 this.getData(this.props.nodeLimit, this._page)
+                this._page++
             }
         })
     }

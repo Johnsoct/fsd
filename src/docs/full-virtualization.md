@@ -23,7 +23,7 @@ head: [
     background-color: brown;
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: 4rem 0;
     width: 100%;
 }
 
@@ -32,7 +32,7 @@ head: [
     background-color: blueviolet;
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: 4rem 0;
     width: 100%;
 }
 
