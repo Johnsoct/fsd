@@ -22,7 +22,7 @@ export default class Virtualizationer {
         `.trim()
         this.props = { ...props }
         this.root = root
-        this._page = 1
+        this._page = 0
 
         if (root === null) {
             console.log("%cRoot was null; aborting construction of VirtualList", "color: white; background-color: red; padding: 4px;")
@@ -38,16 +38,9 @@ export default class Virtualizationer {
         return element
     }
 
-    private backwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
-        entries.forEach((entry) => {
-            console.log("backward", entry)
-            if (entry.isIntersecting) {
-                if (this._page > 1) {
-                    this._page--
-                    this.getData(this.props.nodeLimit, this._page)
-                }
-            }
-        })
+    private backwardCallback() {
+        this._page--
+        this.getData(this.props.nodeLimit, this._page)
     }
 
     private createNode(message: Message): HTMLElement {
@@ -55,23 +48,19 @@ export default class Virtualizationer {
         return this.props.getTemplate(message)
     }
 
-    private forwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
-        entries.forEach((entry) => {
-            console.log("forward", entry)
-
-            if (entry.isIntersecting) {
-                this.getData(this.props.nodeLimit, this._page)
-                this._page++
-            }
-        })
+    private forwardCallback() {
+        this._page++
+        this.getData(this.props.nodeLimit, this._page)
     }
 
     private getBottomObserver(): HTMLElement {
-        return document.getElementById("BottomObserver")
+        return document.getElementById("BottomObserver") as HTMLElement
     }
 
     private getTopObserver(): HTMLElement {
-        return document.getElementById("TopObserver")
+        // I believe it's safe to assume this doesn't return null because
+        // to get here, you have to call this.render (this fn is also private)
+        return document.getElementById("TopObserver") as HTMLElement
     }
 
     private getVirtualListContainer() {
@@ -88,7 +77,7 @@ export default class Virtualizationer {
                 this.updateElementPool(message)
 
             })
-            // console.dir("Data:", this.data)
+            console.dir("Data:", this.data)
             // console.dir("Element pool:", this.elementPool)
 
             this.elementPool.forEach((el) => fragment.appendChild(el))
@@ -105,19 +94,34 @@ export default class Virtualizationer {
         })
     }
 
-    // BUG: intersection observers firing on load
+    private intersectionCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
+        entries.forEach((entry) => {
+            console.log("Intersection", entry)
+
+            const id = entry.target.id
+
+            console.log(this._page)
+            if (entry.isIntersecting) {
+                if (id === "TopObserver" && this._page > 0) {
+                    void this.backwardCallback()
+                }
+
+                if (id === "BottomObserver") {
+                    void this.forwardCallback()
+                }
+            }
+        })
+    }
+
     private initializeObservers() {
-        // Intersection Observers
         const options = {
             root: this.root,
             threshold: 1,
         }
+        const observer = new IntersectionObserver(this.intersectionCallback.bind(this), options)
 
-        const bottomIntersectionObserver = new IntersectionObserver(this.forwardCallback.bind(this), options)
-        const topIntersectionObserver = new IntersectionObserver(this.backwardCallback.bind(this), options)
-
-        bottomIntersectionObserver.observe(this.getBottomObserver())
-        topIntersectionObserver.observe(this.getTopObserver())
+        observer.observe(this.getBottomObserver())
+        observer.observe(this.getTopObserver())
     }
 
     render() {
