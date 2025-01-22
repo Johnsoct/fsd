@@ -1,8 +1,7 @@
-export interface Message {
-    message: string;
-    offset: number;
-    speaker: string;
-}
+// Types
+import { Message } from "../types/virtualization"
+// Helpers
+import { getOffset } from "./pagination"
 
 const conversation = [
     { speaker: "Person A", message: "Raising a child is a big responsibility." },
@@ -113,13 +112,16 @@ const conversation = [
     { speaker: "Person B", message: "Support them through challenges and teach them to view setbacks as opportunities to grow." }
 ];
 
+
 class MockDB {
     constructor() { }
 
-    getMessages(limit = 10, offset = 0): Promise<Message[]> | Promise<[]> {
+    async getMessages(limit = 10, page = 1): Promise<Message[] | []> {
         return new Promise((res) => {
             console.log("%cMockDB: getting messages", "background-color: green; color: white; padding: 4px;")
+
             setTimeout(() => {
+                const offset = getOffset(limit, page)
                 // For testing --> Add indexes to conversations
                 const messages = conversation
                     .slice(offset, offset + limit)

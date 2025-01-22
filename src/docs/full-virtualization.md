@@ -5,7 +5,7 @@ head: [
         {
             defer: true,
             type: "module",
-            src: "../utils/fullVirtualization",
+            src: "../utils/virtualization/fullImplementation.ts",
         },
     ]
 ]
@@ -15,24 +15,32 @@ head: [
 
 <!-- TODO: make viewport and message elements absolute pos'd -->
 <style>
-.BottomObserver {
+.vp-doc li + li {
+    margin-top: 0;
+}
+
+#BottomObserver {
     align-items: center;
     background-color: brown;
     display: flex;
     justify-content: center;
     padding: 1rem 0;
-    position: absolute;
     width: 100%;
 }
 
-.TopObserver {
+#TopObserver {
     align-items: center;
     background-color: blueviolet;
     display: flex;
     justify-content: center;
     padding: 1rem 0;
-    position: absolute;
     width: 100%;
+}
+
+#VirtualList {
+    margin: 0;
+    padding: 0;
+    position: relative;
 }
 
 .Conversation {
@@ -85,7 +93,7 @@ head: [
     margin-left: 1rem;
 }
 
-ul.Conversation__viewport {
+.Conversation__VirtualList {
     contain: layout;
     height: 400px;
     margin: 1rem 0;
@@ -99,8 +107,9 @@ ul.Conversation__viewport {
     align-items: center;
     background-color: lightgrey;
     display: flex;
-    margin-bottom: 1rem;
     padding: 1rem;
+    position: absolute;
+    width: 100%;
 }
 
 .Message:last-child {
@@ -136,7 +145,7 @@ ul.Conversation__viewport {
         <div class="Conversation__avatar"></div>
         <label class="Conversation__contact">Person B</label>
     </div>
-    <ul class="Conversation__viewport"></ul>
+    <div class="Conversation__VirtualList"></div>
     <div class="Conversation__inputs">
         <input
             class="Conversation__input"
