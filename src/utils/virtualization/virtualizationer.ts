@@ -57,7 +57,11 @@ export default class Virtualizationer {
         entries.forEach((entry) => {
             console.log("backward", entry)
             if (entry.isIntersecting) {
-                if (this._page > 0) {
+                if (this._page === 1) {
+                    return
+                }
+
+                if (this._page > 1) {
                     this._page--
                 }
                 this.getData(this.props.nodeLimit, this._page)
@@ -74,6 +78,10 @@ export default class Virtualizationer {
         entries.forEach((entry) => {
             console.log("forward", entry)
             if (entry.isIntersecting) {
+                if (this._page === 1) {
+                    return
+                }
+
                 this._page = this._page + 1
                 this.getData(this.props.nodeLimit, this._page)
             }
