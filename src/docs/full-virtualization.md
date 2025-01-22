@@ -13,7 +13,6 @@ head: [
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 MD041 -->
 
-<!-- TODO: make viewport and message elements absolute pos'd -->
 <style>
 .vp-doc li + li {
     margin-top: 0;

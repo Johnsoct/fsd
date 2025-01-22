@@ -3,22 +3,17 @@ import {
     Message,
     VirtualizationProps
 } from "../../types/virtualization"
-// Helpers
-import MockDB from "../mockDB"
 
 export default class Virtualizationer {
-    data: Message[];
-    DB: MockDB;
+    data: Map<number, Message>;
     elementPool: HTMLElement[];
     readonly html: string;
-    readonly _limit: number;
-    readonly nodeLimit: number;
     _page: number;
     props: VirtualizationProps;
     root: Element | null;
 
     constructor(root: Element | null, props: VirtualizationProps) {
-        this.data = []
+        this.data = new Map()
         this.elementPool = []
         this.html = `
             <div id="TopObserver">Top Observer</div>
@@ -45,10 +40,12 @@ export default class Virtualizationer {
 
     private backwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
-            console.log(entry)
+            console.log("backward", entry)
             if (entry.isIntersecting) {
-                this._page = this._page - 1 || 0
-                this.getMessages(this.props.nodeLimit, this._page)
+                if (this._page > 0) {
+                    this._page--
+                }
+                this.getData(this.props.nodeLimit, this._page)
             }
         })
     }
@@ -60,32 +57,38 @@ export default class Virtualizationer {
 
     private forwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
-            console.log(entry)
+            console.log("forward", entry)
             if (entry.isIntersecting) {
-                this._page = this._page + 1 || 0
-                this.getMessages(this.props.nodeLimit, this._page)
+                this._page = this._page + 1
+                this.getData(this.props.nodeLimit, this._page)
             }
         })
+    }
+
+    private getBottomObserver(): HTMLElement {
+        return document.getElementById("BottomObserver")
+    }
+
+    private getTopObserver(): HTMLElement {
+        return document.getElementById("TopObserver")
     }
 
     private getVirtualListContainer() {
         return document.getElementById("VirtualList")
     }
 
-    private getMessages(limit = this.props.nodeLimit, page: number): Promise<void> {
+    private async getData(limit = this.props.nodeLimit, page: number): Promise<void> {
         return this.props.getData(limit, page).then((messages: Message[]) => {
             const fragment = new DocumentFragment()
             const listContainer = this.getVirtualListContainer()
 
             messages.forEach((message) => {
-                // Store the new message in our "cache" / DB
-                // TODO: Use IndexedDB to store data without duplicates and in order
-                this.data.push(message)
+                this.updateData(message)
                 this.updateElementPool(message)
 
-                // console.dir("Data:", this.data)
             })
-            console.dir("Element pool:", this.elementPool)
+            // console.dir("Data:", this.data)
+            // console.dir("Element pool:", this.elementPool)
 
             this.elementPool.forEach((el) => fragment.appendChild(el))
 
@@ -105,29 +108,21 @@ export default class Virtualizationer {
     private initializeObservers() {
         // Intersection Observers
         const options = {
-            root: document.querySelector(".Conversation__viewport"),
+            root: this.root,
             threshold: 1,
         }
 
-        const bottomIntersectionObserver = new IntersectionObserver(this.forwardCallback, options)
-        const topIntersectionObserver = new IntersectionObserver(this.backwardCallback, options)
-        // BUG: The firstEL is always in view when this is set, which triggers the callback
-        const firstEl = this.elementPool[this.props.nodeLimit, this._page]
-        const lastEl = this.elementPool[this.elementPool.length - 1]
+        const bottomIntersectionObserver = new IntersectionObserver(this.forwardCallback.bind(this), options)
+        const topIntersectionObserver = new IntersectionObserver(this.backwardCallback.bind(this), options)
 
-        console.log("%o", firstEl)
-        console.log("%O", lastEl)
-
-        // BUG: outdated observers never stop observing; how to keep track?
-        bottomIntersectionObserver.observe(lastEl)
-        topIntersectionObserver.observe(firstEl)
+        bottomIntersectionObserver.observe(this.getBottomObserver())
+        topIntersectionObserver.observe(this.getTopObserver())
     }
 
     render() {
         if (this.root) {
             this.root.innerHTML = this.html
-            // this.initializeObservers()
-            this.getMessages(this.props.nodeLimit, this._page)
+            this.initializeObservers()
         }
     }
 
@@ -156,20 +151,9 @@ export default class Virtualizationer {
         }
     }
 
-    private updateTopObserverPosition() {
-        if (!this.elementPool.length) {
-            console.log("updateBottomObserverPosition is being called while elementPool is empty")
-        }
-        else {
-            const el = document.getElementById("TopObserver")
-
-            if (el) {
-                const firstY = Number((this.elementPool[0] as HTMLElement).getAttribute("data-offset")) || 0
-                // const height = el.clientHeight
-
-                el.style.transform = `translateY(${firstY}px)`
-            }
-        }
+    private updateData(message: Message) {
+        // TODO: Use IndexedDB to store data without duplicates and in order
+        this.data.set(message.offset, message)
     }
 
     private updateElementPool(message: Message): HTMLElement {
@@ -195,5 +179,21 @@ export default class Virtualizationer {
             el.setAttribute("data-offset", yPos)
             el.style.transform = `translateY(${yPos}px)`
         })
+    }
+
+    private updateTopObserverPosition() {
+        if (!this.elementPool.length) {
+            console.log("updateBottomObserverPosition is being called while elementPool is empty")
+        }
+        else {
+            const el = document.getElementById("TopObserver")
+
+            if (el) {
+                const firstY = Number((this.elementPool[0] as HTMLElement).getAttribute("data-offset")) || 0
+                // const height = el.clientHeight
+
+                el.style.transform = `translateY(${firstY}px)`
+            }
+        }
     }
 }
