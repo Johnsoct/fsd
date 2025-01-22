@@ -38,6 +38,21 @@ export default class Virtualizationer {
         return element
     }
 
+
+    // #handleIntersection() {
+    //     return (entries) => {
+    //         for (const entry of entries) {
+    //             if (entry.isIntersecting) {
+    //                 const id = entry.target.id;
+    //                 if (id === 'top-observer' && this.start > 0) {
+    //                     void this.#handleTopObserver();
+    //                 } else if (id === 'bottom-observer') {
+    //                     void this.#handleBottomObserver();
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     private backwardCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
             console.log("backward", entry)
