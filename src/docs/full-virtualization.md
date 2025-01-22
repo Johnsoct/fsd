@@ -13,6 +13,7 @@ head: [
 
 <!-- markdownlint-disable MD007 MD010 MD013 MD024 MD028 MD033 MD041 -->
 
+<!-- TODO: make viewport and message elements absolute pos'd -->
 <style>
 .BottomObserver {
     align-items: center;
@@ -59,7 +60,7 @@ head: [
 
 .Conversation__header {
     align-items: center;
-    background-color: lightgrey;
+    background-color: mediumslateblue;
     display: flex;
     justify-content: space-between;
     padding: 1rem;
@@ -68,12 +69,6 @@ head: [
 .Conversation__inputs {
     align-items: center;
     display: flex;
-}
-
-ul.Conversation__messages {
-    background-color: lightgrey;
-    margin: 0;
-    padding: 0;
 }
 
 .Conversation__input {
@@ -90,11 +85,12 @@ ul.Conversation__messages {
     margin-left: 1rem;
 }
 
-.Conversation__viewport {
+ul.Conversation__viewport {
     contain: layout;
     height: 400px;
     margin: 1rem 0;
     overflow-y: auto;
+    padding: 0;
     /* Creates a new stacking context */
     position: relative;
 }
@@ -112,9 +108,12 @@ ul.Conversation__messages {
 }
 
 .Message__avatar {
+    align-items: center;
     background-color: grey;
     border-radius: 50%;
+    display: flex;
     height: 40px;
+    justify-content: center;
     margin-right: 1rem;
     min-width: 40px;
 }
@@ -137,15 +136,7 @@ ul.Conversation__messages {
         <div class="Conversation__avatar"></div>
         <label class="Conversation__contact">Person B</label>
     </div>
-    <div class="Conversation__viewport">
-        <!-- <div class="TopObserver"> -->
-        <!--     <label>Top Observer</label> -->
-        <!-- </div> -->
-        <ul class="Conversation__messages"></ul>
-        <!-- <div class="BottomObserver"> -->
-        <!--     <label>Bottom Observer</label> -->
-        <!-- </div> -->
-    </div>
+    <ul class="Conversation__viewport"></ul>
     <div class="Conversation__inputs">
         <input
             class="Conversation__input"

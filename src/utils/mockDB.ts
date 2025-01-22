@@ -1,3 +1,9 @@
+export interface Message {
+    message: string;
+    offset: number;
+    speaker: string;
+}
+
 const conversation = [
     { speaker: "Person A", message: "Raising a child is a big responsibility." },
     { speaker: "Person B", message: "Absolutely. It requires patience, love, and consistency." },
@@ -107,24 +113,36 @@ const conversation = [
     { speaker: "Person B", message: "Support them through challenges and teach them to view setbacks as opportunities to grow." }
 ];
 
-export default class MockDB {
-    constructor() {
-    }
+class MockDB {
+    constructor() { }
 
-    getMessages(limit = 10, offset = 0) {
+    getMessages(limit = 10, offset = 0): Promise<Message[]> | Promise<[]> {
         return new Promise((res) => {
+            console.log("%cMockDB: getting messages", "background-color: green; color: white; padding: 4px;")
             setTimeout(() => {
-                res(conversation.slice(offset, offset + limit))
+                // For testing --> Add indexes to conversations
+                const messages = conversation
+                    .slice(offset, offset + limit)
+                    .map((message, index) => {
+                        return {
+                            ...message,
+                            offset: offset + index,
+                        }
+                    })
+
+                res(messages)
             }, 500)
         })
     }
 
-    async initDB() {
+    async initDB(): Promise<MockDB> {
         return new Promise((res) => {
             setTimeout(() => {
                 console.log("DB connected")
-                res([])
+                res(this)
             }, 1000)
         })
     }
 }
+
+export default MockDB
