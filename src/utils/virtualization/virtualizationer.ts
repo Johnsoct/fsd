@@ -100,7 +100,6 @@ export default class Virtualizationer {
 
             const id = entry.target.id
 
-            console.log(this._page)
             if (entry.isIntersecting) {
                 if (id === "TopObserver" && this._page > 0) {
                     void this.backwardCallback()
@@ -120,8 +119,10 @@ export default class Virtualizationer {
         }
         const observer = new IntersectionObserver(this.intersectionCallback.bind(this), options)
 
-        observer.observe(this.getBottomObserver())
+        // NOTE: By observing the top first, we avoid triggering the top callback when the observer
+        // initializes due to the bottom observer's callback increasing the page count
         observer.observe(this.getTopObserver())
+        observer.observe(this.getBottomObserver())
     }
 
     render() {
