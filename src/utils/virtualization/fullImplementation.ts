@@ -34,7 +34,7 @@ function updateTemplate(template: HTMLElement, message: Message): HTMLElement {
 const _VL = new Virtualizationer(root, {
     getData: DB.getMessages,
     getTemplate,
-    nodeLimit: 10,
+    nodeLimit: 20,
     updateTemplate,
 })
 

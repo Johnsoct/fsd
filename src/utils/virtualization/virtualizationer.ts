@@ -10,6 +10,7 @@ export default class Virtualizationer {
     readonly html: string;
     _page: number;
     props: VirtualizationProps;
+    requestLimit: number;
     root: Element | null;
 
     constructor(root: Element | null, props: VirtualizationProps) {
@@ -21,6 +22,7 @@ export default class Virtualizationer {
             <div id="BottomObserver">Bottom Observer</div>
         `.trim()
         this.props = { ...props }
+        this.requestLimit = this.props.nodeLimit / 2
         this.root = root
         this._page = 0
 
@@ -40,7 +42,7 @@ export default class Virtualizationer {
 
     private backwardCallback() {
         this._page--
-        this.getData(this.props.nodeLimit, this._page)
+        this.getData(this.requestLimit, this._page)
     }
 
     private createNode(message: Message): HTMLElement {
@@ -50,7 +52,7 @@ export default class Virtualizationer {
 
     private forwardCallback() {
         this._page++
-        this.getData(this.props.nodeLimit, this._page)
+        this.getData(this.requestLimit, this._page)
     }
 
     private getBottomObserver(): HTMLElement {
@@ -67,7 +69,7 @@ export default class Virtualizationer {
         return document.getElementById("VirtualList")
     }
 
-    private async getData(limit = this.props.nodeLimit, page: number): Promise<void> {
+    private async getData(limit = this.requestLimit, page: number): Promise<void> {
         return this.props.getData(limit, page).then((messages: Message[]) => {
             const fragment = new DocumentFragment()
             const listContainer = this.getVirtualListContainer()
