@@ -5,6 +5,7 @@ import {
 } from "../../types/virtualization"
 
 // TODO: this.data isn't actually being used to recycling information
+// TODO: new items aren't starting at the scroll position (bottom); they're replacing what's at the bottom
 export default class Virtualizationer {
     data: Map<number, Message>;
     elementPool: HTMLElement[];
