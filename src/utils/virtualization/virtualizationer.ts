@@ -4,6 +4,7 @@ import {
     VirtualizationProps
 } from "../../types/virtualization"
 
+// TODO: this.data isn't actually being used to recycling information
 export default class Virtualizationer {
     data: Map<number, Message>;
     elementPool: HTMLElement[];
@@ -71,35 +72,35 @@ export default class Virtualizationer {
 
     private async getData(limit = this.requestLimit, page: number): Promise<void> {
         return this.props.getData(limit, page).then((messages: Message[]) => {
-            const fragment = new DocumentFragment()
             const listContainer = this.getVirtualListContainer()
 
             messages.forEach((message) => {
                 this.updateData(message)
                 this.updateElementPool(message)
-
             })
-            console.dir("Data:", this.data)
+
+            //console.dir("Data:", this.data)
             // console.dir("Element pool:", this.elementPool)
 
-            this.elementPool.forEach((el) => fragment.appendChild(el))
-
             if (listContainer) {
-                listContainer.appendChild(fragment)
-                this.updateElementsPosition()
-                this.updateTopObserverPosition()
-                this.updateBottomObserverPosition()
+                if (listContainer.childNodes.length < this.props.nodeLimit) {
+                    const fragment = new DocumentFragment()
+                    this.elementPool.forEach((el) => fragment.appendChild(el))
+                    listContainer.appendChild(fragment)
+                }
             }
             else {
                 console.log(`"this.root" was null; could not append fragment`)
             }
+
+            this.updateElementsPosition()
+            this.updateTopObserverPosition()
+            this.updateBottomObserverPosition()
         })
     }
 
     private intersectionCallback(entries: IntersectionObserverEntry[], observer: IntersectionObserver) {
         entries.forEach((entry) => {
-            console.log("Intersection", entry)
-
             const id = entry.target.id
 
             if (entry.isIntersecting) {
@@ -134,13 +135,12 @@ export default class Virtualizationer {
         }
     }
 
-    private recyclePoolElement(message: Message): HTMLElement {
-        // TODO: Recycling the elements in elementPool by updating their
-        // internals vs replacing the element in the DOM
+    private recyclePoolElement(message: Message): void {
+        const el = this.elementPool[0]
 
-        // TODO: get existing element in pool
-        // TODO: update node's content
-        // this.props.updateTemplate(message)
+        this.updateNode(el, message)
+
+        this.elementPool = [...this.elementPool.slice(1), el]
     }
 
     private updateBottomObserverPosition() {
@@ -164,29 +164,32 @@ export default class Virtualizationer {
         this.data.set(message.offset, message)
     }
 
-    private updateElementPool(message: Message): HTMLElement {
-        let element: HTMLElement
-
-        // If we're not at our nodeLimit in elementPool:
+    private updateElementPool(message: Message): void {
         if (this.elementPool.length < this.props.nodeLimit) {
-            element = this.addElementToPool(message)
+            this.addElementToPool(message)
         }
         else {
-            element = this.recyclePoolElement(message)
+            this.recyclePoolElement(message)
         }
-
-        return element
     }
 
     private updateElementsPosition(): void {
+        //  TODO: when recycling, only update the position of the recycled half
         this.elementPool.forEach((el, index) => {
             const prevHeight = this.elementPool[index - 1]?.clientHeight || 0
             const prevY = Number(this.elementPool[index - 1]?.getAttribute("data-offset")) || 0
             const yPos = (prevHeight + prevY).toString()
 
+            //console.log(prevHeight, prevY, yPos, index, this.elementPool[index - 1])
+
             el.setAttribute("data-offset", yPos)
             el.style.transform = `translateY(${yPos}px)`
         })
+    }
+
+    private updateNode(el: HTMLElement, message: Message): void {
+        // Create a new element with message
+        this.props.updateTemplate(el, message)
     }
 
     private updateTopObserverPosition() {
