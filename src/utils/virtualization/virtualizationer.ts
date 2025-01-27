@@ -5,9 +5,9 @@ import {
 } from "../../types/virtualization"
 
 // TODO: this.data isn't actually being used to recycling information
-// BUG: new items aren't starting at the scroll position (bottom); they're replacing what's at the bottom
 export default class Virtualizationer {
     data: Map<number, Message>;
+    direction: string;
     elementPool: HTMLElement[];
     readonly html: string;
     _page: number;
@@ -17,6 +17,7 @@ export default class Virtualizationer {
 
     constructor(root: Element | null, props: VirtualizationProps) {
         this.data = new Map()
+        this.direction = "down"
         this.elementPool = []
         this.html = `
             <div id="TopObserver">Top Observer</div>
@@ -26,7 +27,7 @@ export default class Virtualizationer {
         this.props = { ...props }
         this.requestLimit = this.props.nodeLimit / 2
         this.root = root
-        this._page = 1
+        this._page = 0
 
         if (root === null) {
             console.log("%cRoot was null; aborting construction of VirtualList", "color: white; background-color: red; padding: 4px;")
@@ -43,8 +44,20 @@ export default class Virtualizationer {
     }
 
     private backwardCallback() {
-        this._page--
+        // WARN: this feels hacky
+        // NOTE: because we keep two pages of data displayed at any given time besides on load
+        // when we hit the top observer, we need to go back two pages when our last direction
+        // was down
+        if (this.direction === "down") {
+            this._page = this._page - 2
+        }
+        else {
+            this._page--
+        }
+
         this.getData(this.requestLimit, this._page, "up")
+
+        this.direction = "up"
     }
 
     private createNode(message: Message): HTMLElement {
@@ -53,8 +66,20 @@ export default class Virtualizationer {
     }
 
     private forwardCallback() {
+        // WARN: this feels hacky
+        // NOTE: because we keep two pages of data displayed at any given time besides on load
+        // when we hit the bottom observer, we need to go up two pages when our last direction
+        // was up
+        if (this.direction === "up") {
+            this._page = this._page + 2
+        }
+        else {
+            this._page++
+        }
+
         this.getData(this.requestLimit, this._page, "down")
-        this._page++
+
+        this.direction = "down"
     }
 
     private getBottomObserver(): HTMLElement {
@@ -112,7 +137,7 @@ export default class Virtualizationer {
             const id = entry.target.id
 
             if (entry.isIntersecting) {
-                if (id === "TopObserver" && this._page > 1) {
+                if (id === "TopObserver" && this._page > 0) {
                     void this.backwardCallback()
                 }
 
