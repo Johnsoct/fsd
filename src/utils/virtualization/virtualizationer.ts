@@ -60,6 +60,23 @@ export default class Virtualizationer {
         this.direction = "up"
     }
 
+    private calculateElementPositionDownwards(el: HTMLElement, prevEl: HTMLElement) {
+        const prevHeight = prevEl?.clientHeight || 0
+        const prevY = Number(prevEl?.getAttribute("data-offset")) || 0
+        const yPos = (prevHeight + prevY).toString()
+
+        el.setAttribute("data-offset", yPos)
+        el.style.transform = `translateY(${yPos}px)`
+    }
+
+    private calculateElementPositionUpwards(el: HTMLElement, prevEl: HTMLElement) {
+        const prevY = Number(prevEl?.getAttribute("data-offset")) || 0
+        const newY = (prevY - el.clientHeight).toString()
+
+        el.setAttribute("data-offset", newY)
+        el.style.transform = `translateY(${newY}px)`
+    }
+
     private createNode(message: Message): HTMLElement {
         // Create a new element with message
         return this.props.getTemplate(message)
@@ -218,23 +235,6 @@ export default class Virtualizationer {
         else {
             this.recyclePoolElement(message)
         }
-    }
-
-    private calculateElementPositionDownwards(el: HTMLElement, prevEl: HTMLElement) {
-        const prevHeight = prevEl?.clientHeight || 0
-        const prevY = Number(prevEl?.getAttribute("data-offset")) || 0
-        const yPos = (prevHeight + prevY).toString()
-
-        el.setAttribute("data-offset", yPos)
-        el.style.transform = `translateY(${yPos}px)`
-    }
-
-    private calculateElementPositionUpwards(el: HTMLElement, prevEl: HTMLElement) {
-        const prevY = Number(prevEl?.getAttribute("data-offset")) || 0
-        const newY = (prevY - el.clientHeight).toString()
-
-        el.setAttribute("data-offset", newY)
-        el.style.transform = `translateY(${newY}px)`
     }
 
     private updateElementsPosition(): void {
