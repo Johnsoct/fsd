@@ -96,20 +96,20 @@ export default class Virtualizationer {
         return document.getElementById("VirtualList")
     }
 
-    private async getData(limit = this.requestLimit, page: number, direction: string): Promise<void> {
+    private async getData(limit = this.requestLimit, page: number): Promise<void> {
         return this.props.getData(limit, page).then((messages: Message[]) => {
             const listContainer = this.getVirtualListContainer()
 
             // NOTE: Since we're updating elementPool one index at a time, we need to handle the incoming
             // messages one at a time, and if they're in standard order, they end up in reversed order
             // after the updates
-            if (direction === "up") {
+            if (this.direction === "up") {
                 messages.reverse()
             }
 
             messages.forEach((message) => {
                 this.updateData(message)
-                this.updateElementPool(message, direction)
+                this.updateElementPool(message)
             })
 
             //console.dir("Data:", this.data)
@@ -126,7 +126,7 @@ export default class Virtualizationer {
                 console.log(`"this.root" was null; could not append fragment`)
             }
 
-            this.updateElementsPosition(direction)
+            this.updateElementsPosition()
             this.updateTopObserverPosition()
             this.updateBottomObserverPosition()
         })
@@ -168,8 +168,8 @@ export default class Virtualizationer {
         }
     }
 
-    private recyclePoolElement(message: Message, direction: string): void {
-        if (direction === "down") {
+    private recyclePoolElement(message: Message): void {
+        if (this.direction === "down") {
             const el = this.elementPool[0]
 
             this.updateNode(el, message)
@@ -211,12 +211,12 @@ export default class Virtualizationer {
         this.data.set(message.offset, message)
     }
 
-    private updateElementPool(message: Message, direction: string): void {
+    private updateElementPool(message: Message): void {
         if (this.elementPool.length < this.props.nodeLimit) {
             this.addElementToPool(message)
         }
         else {
-            this.recyclePoolElement(message, direction)
+            this.recyclePoolElement(message)
         }
     }
 
@@ -237,11 +237,11 @@ export default class Virtualizationer {
         el.style.transform = `translateY(${newY}px)`
     }
 
-    private updateElementsPosition(direction: string): void {
+    private updateElementsPosition(): void {
         // NOTE: only update the most recently updated items
         // WARN: this function can't be called outside of getData, becauase it assumes it
         // is immediately following items being added to `this.elementPool`
-        if (direction === "down") {
+        if (this.direction === "down") {
             this.elementPool.forEach((el, index) => {
                 if (index >= (this.elementPool.length - 1 - this.requestLimit)) {
                     this.calculateElementPositionDownwards(el, this.elementPool[index - 1])
