@@ -26,7 +26,7 @@ export default class Virtualizationer {
         this.props = { ...props }
         this.requestLimit = this.props.nodeLimit / 2
         this.root = root
-        this._page = 0
+        this._page = 1
 
         if (root === null) {
             console.log("%cRoot was null; aborting construction of VirtualList", "color: white; background-color: red; padding: 4px;")
@@ -53,8 +53,8 @@ export default class Virtualizationer {
     }
 
     private forwardCallback() {
-        this._page++
         this.getData(this.requestLimit, this._page, "down")
+        this._page++
     }
 
     private getBottomObserver(): HTMLElement {
@@ -75,9 +75,16 @@ export default class Virtualizationer {
         return this.props.getData(limit, page).then((messages: Message[]) => {
             const listContainer = this.getVirtualListContainer()
 
+            // NOTE: Since we're updating elementPool one index at a time, we need to handle the incoming
+            // messages one at a time, and if they're in standard order, they end up in reversed order
+            // after the updates
+            if (direction === "up") {
+                messages.reverse()
+            }
+
             messages.forEach((message) => {
                 this.updateData(message)
-                this.updateElementPool(message)
+                this.updateElementPool(message, direction)
             })
 
             //console.dir("Data:", this.data)
@@ -105,7 +112,7 @@ export default class Virtualizationer {
             const id = entry.target.id
 
             if (entry.isIntersecting) {
-                if (id === "TopObserver" && this._page > 0) {
+                if (id === "TopObserver" && this._page > 1) {
                     void this.backwardCallback()
                 }
 
@@ -136,12 +143,26 @@ export default class Virtualizationer {
         }
     }
 
-    private recyclePoolElement(message: Message): void {
-        const el = this.elementPool[0]
+    private recyclePoolElement(message: Message, direction: string): void {
+        if (direction === "down") {
+            const el = this.elementPool[0]
 
-        this.updateNode(el, message)
+            this.updateNode(el, message)
 
-        this.elementPool = [...this.elementPool.slice(1), el]
+            this.elementPool = [...this.elementPool.slice(1), el]
+        }
+        else {
+            const el = this.elementPool.at(-1)
+
+            if (el) {
+                this.updateNode(el, message)
+
+                this.elementPool = [el, ...this.elementPool.slice(0, -1)]
+            }
+            else {
+                console.log("element not found at `this.elementPool.at(-1)` within recyclePoolElement()")
+            }
+        }
     }
 
     private updateBottomObserverPosition() {
@@ -165,12 +186,12 @@ export default class Virtualizationer {
         this.data.set(message.offset, message)
     }
 
-    private updateElementPool(message: Message): void {
+    private updateElementPool(message: Message, direction: string): void {
         if (this.elementPool.length < this.props.nodeLimit) {
             this.addElementToPool(message)
         }
         else {
-            this.recyclePoolElement(message)
+            this.recyclePoolElement(message, direction)
         }
     }
 
@@ -191,24 +212,26 @@ export default class Virtualizationer {
         el.style.transform = `translateY(${newY}px)`
     }
 
-    // BUG: doesn't take direction into consideration (currently only goes forward)
     private updateElementsPosition(direction: string): void {
         // NOTE: only update the most recently updated items
         // WARN: this function can't be called outside of getData, becauase it assumes it
-        // is immediately following items being added to `this.elementsPool`
-        this.elementPool.forEach((el, index) => {
-            if (direction === "down") {
+        // is immediately following items being added to `this.elementPool`
+        if (direction === "down") {
+            this.elementPool.forEach((el, index) => {
                 if (index >= (this.elementPool.length - 1 - this.requestLimit)) {
                     this.calculateElementPositionDownwards(el, this.elementPool[index - 1])
                 }
-            }
-            else {
-                // Need to address elementsPool in reverse... 
-                if (index < this.requestLimit) {
-                    this.calculateElementPositionUpwards(el, this.elementPool[index + 1])
+            })
+        }
+        else {
+            this.elementPool.reverse().forEach((el, index) => {
+                // Need to address elementPool in reverse... 
+                if (index > this.requestLimit - 1) {
+                    this.calculateElementPositionUpwards(el, this.elementPool[index - 1])
                 }
-            }
-        })
+            })
+            this.elementPool.reverse()
+        }
     }
 
     private updateNode(el: HTMLElement, message: Message): void {
@@ -224,6 +247,7 @@ export default class Virtualizationer {
             const el = document.getElementById("TopObserver")
 
             if (el) {
+                console.log(this.elementPool)
                 const firstY = Number((this.elementPool[0] as HTMLElement).getAttribute("data-offset")) || 0
                 // const height = el.clientHeight
 
