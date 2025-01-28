@@ -55,7 +55,7 @@ export default class Virtualizationer {
             this._page--
         }
 
-        this.getData(this.requestLimit, this._page, "up")
+        this.getData(this.requestLimit, this._page)
 
         this.direction = "up"
     }
@@ -94,7 +94,7 @@ export default class Virtualizationer {
             this._page++
         }
 
-        this.getData(this.requestLimit, this._page, "down")
+        this.getData(this.requestLimit, this._page)
 
         this.direction = "down"
     }
