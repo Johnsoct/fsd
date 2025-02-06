@@ -75,19 +75,19 @@ Depending on the CSS `box-sizing` property value, the width calculation is diffe
 
 <br>
 
-When `box-sizing: content-box`, each layer of the box model needs to be calculated to get the accurate width of the element.
-
-```scss
-// Psuedo code
-box-sizing: content-box;
-width: calc(margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right);
-```
-
-When `box-sizing: border-box`, the content portion of the box wraps the border, padding, and content layer into one layer, simplifying the calculation.
+When `box-sizing: border-box`, each layer of the box model needs to be calculated to get the accurate width of the element.
 
 ```scss
 // Psuedo code
 box-sizing: border-box;
+width: calc(margin-left + border-left + padding-left + content-width + padding-right + border-right + margin-right);
+```
+
+When `box-sizing: content-box`, the content portion of the box wraps the border, padding, and content layer into one layer, simplifying the calculation.
+
+```scss
+// Psuedo code
+box-sizing: content-box;
 width: calc(margin-left + content-width + margin-right);
 ```
 
